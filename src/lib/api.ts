@@ -1,0 +1,122 @@
+export type Model = {
+  id: string
+  slug: string
+  name: string
+  display_name?: string
+  brand: string
+  category: string
+  primary_image_url: string | null
+  price_from: number | null
+  price_correct: number | null
+  price_imparfait: number | null
+  price_tres_bon: number | null
+  price_parfait: number | null
+  tags: string[]
+}
+
+type ModelsResponse = {
+  items: Model[]
+}
+
+const API_BASE = '/api/public/v1'
+
+async function getJson<T>(path: string): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`)
+  if (!res.ok) {
+    throw new Error(`API ${res.status}`)
+  }
+  return res.json() as Promise<T>
+}
+
+export async function getModels(params: {
+  category?: string
+  tag?: string
+  perPage?: number
+}) {
+  const q = new URLSearchParams()
+  if (params.category) q.set('category', params.category)
+  if (params.tag) q.set('tag', params.tag)
+  if (params.perPage) q.set('perPage', String(params.perPage))
+  const data = await getJson<ModelsResponse>(`/models?${q}`)
+  return data.items ?? []
+}
+
+export function modelPrice(model: Model) {
+  return model.price_correct ?? model.price_from ?? null
+}
+
+export function productHref(model: Model) {
+  const brand = model.brand.toLowerCase()
+  return `https://dbcstore.fr/fr/products/smartphones/${brand}/${model.slug}`
+}
+
+export function formatEuro(value: number) {
+  return `${value.toLocaleString('fr-FR')} €`
+}
+
+export type RelaxMode = 'none' | 'tag' | 'budget' | 'fallback'
+
+export function pickRecommendation(
+  all: Model[],
+  tagged: Model[] | null,
+  budget: { min: number | null; max: number | null } | null,
+): { model: Model; relax: RelaxMode } | null {
+  const withPrice = (list: Model[]) =>
+    list.filter((m) => modelPrice(m) != null)
+  const byPrice = (a: Model, b: Model) =>
+    (modelPrice(a) ?? 0) - (modelPrice(b) ?? 0)
+
+  const allPriced = withPrice(all)
+  const taggedPriced = tagged ? withPrice(tagged) : null
+  const hasBudget =
+    budget?.max != null || (budget?.min != null && budget.min > 0)
+
+  const inBudget = (m: Model) => {
+    const p = modelPrice(m) ?? 0
+    return p >= (budget?.min ?? 0) && (budget?.max == null || p < budget.max)
+  }
+
+  const budgetDistance = (m: Model) => {
+    const p = modelPrice(m) ?? 0
+    const min = budget?.min ?? 0
+    if (p < min) return min - p
+    if (budget?.max != null && p >= budget.max) return p - budget.max
+    return 0
+  }
+
+  type Candidate = { list: Model[]; relax: RelaxMode }
+  const pools: Candidate[] = []
+  const preferred = taggedPriced ?? allPriced
+
+  if (hasBudget) {
+    pools.push({ list: preferred.filter(inBudget).sort(byPrice), relax: 'none' })
+    if (taggedPriced) {
+      pools.push({
+        list: allPriced.filter(inBudget).sort(byPrice),
+        relax: 'tag',
+      })
+    }
+    pools.push({
+      list: [...allPriced].sort(
+        (a, b) => budgetDistance(a) - budgetDistance(b) || byPrice(a, b),
+      ),
+      relax: 'budget',
+    })
+  } else {
+    pools.push({ list: [...preferred].sort(byPrice), relax: 'none' })
+    if (taggedPriced) {
+      pools.push({ list: [...allPriced].sort(byPrice), relax: 'tag' })
+    }
+  }
+  pools.push({ list: [...allPriced].sort(byPrice), relax: 'fallback' })
+
+  const seen = new Set<string>()
+  for (const pool of pools) {
+    for (const model of pool.list) {
+      if (seen.has(model.id)) continue
+      seen.add(model.id)
+      return { model, relax: pool.relax }
+    }
+  }
+  return null
+}

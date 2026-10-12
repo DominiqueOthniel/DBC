@@ -1,0 +1,151 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: almarenaNeue;
+  src: url("/fonts/AlmarenaNeue-Regular.otf") format("opentype");
+  font-display: swap;
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: almarenaNeue;
+  src: url("/fonts/AlmarenaNeue-Medium.otf") format("opentype");
+  font-display: swap;
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: almarenaNeue;
+  src: url("/fonts/AlmarenaNeue-SemiBold.otf") format("opentype");
+  font-display: swap;
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: almarenaNeue;
+  src: url("/fonts/AlmarenaNeue-Bold.otf") format("opentype");
+  font-display: swap;
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: generalSans;
+  src: url("/fonts/GeneralSans-Regular.woff2") format("woff2");
+  font-display: swap;
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: generalSans;
+  src: url("/fonts/GeneralSans-Medium.woff") format("woff");
+  font-display: swap;
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: generalSans;
+  src: url("/fonts/GeneralSans-Semibold.woff") format("woff");
+  font-display: swap;
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: generalSans;
+  src: url("/fonts/GeneralSans-Bold.woff2") format("woff2");
+  font-display: swap;
+  font-weight: 700;
+  font-style: normal;
+}
+
+@theme {
+  --font-sans: "generalSans", system-ui, sans-serif;
+  --font-display: "almarenaNeue", "generalSans", system-ui, sans-serif;
+  --color-primary: #034638;
+  --color-primary-foreground: #fff;
+  --color-accent: #00bf6f;
+  --color-highlight: #d8e142;
+  --color-highlight-foreground: #034638;
+  --color-background: #fff;
+  --color-foreground: #0e0f0c;
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f5f5f5;
+  --color-gray-200: #ebebeb;
+  --color-gray-400: #9ca39c;
+  --color-gray-500: #6b6d6b;
+  --color-gray-600: #454745;
+  --color-gray-700: #2f322f;
+  --color-gray-900: #0e0f0c;
+  --color-green-50: #e6f7f1;
+  --color-border: #ebebeb;
+  --color-input: #ebebeb;
+  --color-ring: #034638;
+  --color-muted-foreground: #454745;
+}
+
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --bottom-bar-height: 0px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scrollbar-width: thin;
+}
+
+body {
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display) !important;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+@keyframes marquee {
+  0% {
+    transform: translate(0);
+  }
+  to {
+    transform: translate(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: 7s linear infinite marquee;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
