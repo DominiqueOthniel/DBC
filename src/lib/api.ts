@@ -16,6 +16,10 @@ export type Model = {
 
 type ModelsResponse = {
   items: Model[]
+  page?: number
+  pages?: number
+  per_page?: number
+  total?: number
 }
 
 const API_BASE = '/api/public/v1'
@@ -33,12 +37,25 @@ export async function getModels(params: {
   tag?: string
   perPage?: number
 }) {
-  const q = new URLSearchParams()
-  if (params.category) q.set('category', params.category)
-  if (params.tag) q.set('tag', params.tag)
-  if (params.perPage) q.set('perPage', String(params.perPage))
-  const data = await getJson<ModelsResponse>(`/models?${q}`)
-  return data.items ?? []
+  // L'API Railway attend `per_page` (snake_case). `perPage` est ignoré → 20 items.
+  const perPage = params.perPage ?? 100
+  const all: Model[] = []
+  let page = 1
+  let pages = 1
+
+  do {
+    const q = new URLSearchParams()
+    if (params.category) q.set('category', params.category)
+    if (params.tag) q.set('tag', params.tag)
+    q.set('per_page', String(perPage))
+    q.set('page', String(page))
+    const data = await getJson<ModelsResponse>(`/models?${q}`)
+    all.push(...(data.items ?? []))
+    pages = data.pages ?? 1
+    page += 1
+  } while (page <= pages && page <= 50)
+
+  return all
 }
 
 export function modelPrice(model: Model) {
