@@ -3,19 +3,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { colorHex } from '../data/phoneColors'
 import { formatEuro, getModels, modelPrice, type Model } from '../lib/api'
 import { useCart } from '../lib/cart'
+import { imageForColor, preloadColorImages } from '../lib/productImages'
 import { Link, ROUTES } from '../lib/routing'
 import { ProductColorPicker } from './ColorSwatches'
 
 const GRADES = ['Parfait', 'Très bon', 'Correct'] as const
-
-const COLOR_IMAGES: Record<string, Record<string, string>> = {
-  'iphone-18-pro-max': {
-    Bordeaux: '/product-images/iphone-18-pro-max/bordeaux/0.jpg',
-    Glacier: '/product-images/iphone-18-pro-max/glacier/0.jpg',
-    Argent: '/product-images/iphone-18-pro-max/argent/0.jpg',
-    Noir: '/product-images/iphone-18-pro-max/noir/0.jpg',
-  },
-}
 
 function initialColorFromUrl(colors: string[], fallback: string) {
   if (typeof window === 'undefined') return fallback
@@ -38,32 +30,32 @@ export function ProductPage({ slug }: { slug: string }) {
       .then((items) => {
         if (cancelled) return
         let found = items.find((m) => m.slug === slug) ?? null
+        const apply = (m: Model | null) => {
+          setModel(m)
+          if (!m) return
+          const colors = m.colors ?? []
+          const base =
+            colors.find((c) => c === m.default_color) ||
+            colors.find(
+              (c) =>
+                c.toLowerCase() === (m.default_color ?? '').toLowerCase(),
+            ) ||
+            colors[0] ||
+            m.default_color ||
+            ''
+          const initial = initialColorFromUrl(colors, base || '')
+          setColor(initial || '')
+          preloadColorImages(
+            colors.map((c) => imageForColor(m, c)).filter(Boolean) as string[],
+          )
+        }
         if (!found) {
           return getModels({ perPage: 100 }).then((all) => {
             if (cancelled) return
-            found = all.find((m) => m.slug === slug) ?? null
-            setModel(found)
-            if (found) {
-              const colors = found.colors ?? []
-              const base =
-                found.colors?.find((c) => c === found!.default_color) ||
-                colors[0] ||
-                found.default_color ||
-                ''
-              setColor(initialColorFromUrl(colors, base || ''))
-            }
+            apply(all.find((m) => m.slug === slug) ?? null)
           })
         }
-        setModel(found)
-        if (found) {
-          const colors = found.colors ?? []
-          const base =
-            found.colors?.find((c) => c === found!.default_color) ||
-            colors[0] ||
-            found.default_color ||
-            ''
-          setColor(initialColorFromUrl(colors, base || ''))
-        }
+        apply(found)
       })
       .catch(() => {
         if (!cancelled) setModel(null)
@@ -75,8 +67,7 @@ export function ProductPage({ slug }: { slug: string }) {
 
   const imageUrl = useMemo(() => {
     if (!model) return null
-    const byColor = COLOR_IMAGES[model.slug]?.[color]
-    return byColor || model.primary_image_url
+    return imageForColor(model, color) || model.primary_image_url
   }, [model, color])
 
   if (model === undefined) {
@@ -107,6 +98,13 @@ export function ProductPage({ slug }: { slug: string }) {
     price != null && neu != null && neu > price ? neu - price : null
   const colors = model.colors ?? []
 
+  function selectColor(name: string) {
+    setColor(name)
+    const url = new URL(window.location.href)
+    url.searchParams.set('color', name)
+    window.history.replaceState({}, '', url.pathname + url.search)
+  }
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 md:py-10">
       <div className="mb-6 flex flex-wrap items-center gap-4">
@@ -129,9 +127,10 @@ export function ProductPage({ slug }: { slug: string }) {
         <div className="relative aspect-square w-full shrink-0 overflow-hidden rounded-xl bg-gray-50 sm:aspect-auto sm:h-72 sm:w-72">
           {imageUrl ? (
             <img
+              key={imageUrl}
               src={imageUrl}
               alt={`${model.display_name ?? model.name}${color ? ` ${color}` : ''}`}
-              className="absolute inset-0 h-full w-full object-contain p-4"
+              className="absolute inset-0 h-full w-full object-contain p-4 transition-opacity duration-200"
             />
           ) : null}
         </div>
@@ -186,12 +185,7 @@ export function ProductPage({ slug }: { slug: string }) {
           <ProductColorPicker
             colors={colors}
             value={color || colors[0] || ''}
-            onChange={(name) => {
-              setColor(name)
-              const url = new URL(window.location.href)
-              url.searchParams.set('color', name)
-              window.history.replaceState({}, '', url.pathname + url.search)
-            }}
+            onChange={selectColor}
           />
 
           <div className="mt-5">

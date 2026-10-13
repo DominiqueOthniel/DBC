@@ -1,9 +1,8 @@
 import { Search } from 'lucide-react'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { formatEuro, getModels, modelPrice, type Model } from '../../lib/api'
-import { useCart } from '../../lib/cart'
-import { Link, ROUTES, useRouting } from '../../lib/routing'
-import { ListingColorDots } from '../ColorSwatches'
+import { getModels, type Model } from '../../lib/api'
+import { ROUTES, useRouting } from '../../lib/routing'
+import { CatalogProductCard } from '../CatalogProductCard'
 
 function queryFromUrl() {
   if (typeof window === 'undefined') return ''
@@ -12,7 +11,6 @@ function queryFromUrl() {
 
 export function SearchPage() {
   const { navigate } = useRouting()
-  const { addItem } = useCart()
   const [q, setQ] = useState(queryFromUrl)
   const [models, setModels] = useState<Model[]>([])
   const [loading, setLoading] = useState(true)
@@ -52,7 +50,9 @@ export function SearchPage() {
   function submit(e: FormEvent) {
     e.preventDefault()
     const next = q.trim()
-    navigate(next ? `${ROUTES.search}?q=${encodeURIComponent(next)}` : ROUTES.search)
+    navigate(
+      next ? `${ROUTES.search}?q=${encodeURIComponent(next)}` : ROUTES.search,
+    )
   }
 
   return (
@@ -89,56 +89,9 @@ export function SearchPage() {
       </p>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {results.map((model) => {
-          const price = model.price_from ?? modelPrice(model)
-          const title = model.display_name ?? model.name
-          return (
-            <div
-              key={model.id}
-              className="flex flex-col rounded-xl border border-gray-100 bg-white p-4"
-            >
-              <Link to={ROUTES.product(model.slug)} className="group">
-                <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-50">
-                  {model.primary_image_url ? (
-                    <img
-                      src={model.primary_image_url}
-                      alt={title}
-                      className="absolute inset-0 h-full w-full object-contain"
-                    />
-                  ) : null}
-                </div>
-                <ListingColorDots colors={model.colors} />
-                <h2 className="mt-1 font-display text-sm font-semibold text-gray-900 group-hover:underline">
-                  {title}
-                </h2>
-                {price != null ? (
-                  <p className="mt-1 text-base font-bold text-gray-900">
-                    {formatEuro(price)}
-                  </p>
-                ) : null}
-              </Link>
-              <button
-                type="button"
-                disabled={price == null}
-                onClick={() => {
-                  if (price == null) return
-                  addItem({
-                    slug: model.slug,
-                    title,
-                    imageUrl: model.primary_image_url ?? '',
-                    price,
-                    color: model.default_color ?? model.colors?.[0],
-                    grade: 'Parfait',
-                    href: ROUTES.product(model.slug),
-                  })
-                }}
-                className="mt-3 inline-flex h-9 items-center justify-center rounded-full bg-primary px-4 text-sm font-semibold text-white hover:bg-primary/90 disabled:opacity-50"
-              >
-                Ajouter au panier
-              </button>
-            </div>
-          )
-        })}
+        {results.map((model) => (
+          <CatalogProductCard key={model.id} model={model} />
+        ))}
       </div>
     </div>
   )
