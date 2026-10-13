@@ -13,9 +13,8 @@ export const LOCAL_CATALOG_OVERRIDES: Model[] = [
     display_name: 'iPhone 18 Pro Max',
     brand: 'Apple',
     category: 'mobile',
-    // Image catalogue absente: fallback visuel sur le 17 Pro Max (même gamme).
-    primary_image_url:
-      'https://xbcfxgoysecsbboyvlpu.supabase.co/storage/v1/object/public/product-images/iphone-17-pro-max/argent/0.jpg',
+    // Asset local (même convention de chemin que le catalogue Supabase).
+    primary_image_url: '/product-images/iphone-18-pro-max/argent/0.jpg',
     // Un cran au-dessus du 17 Pro Max (correct 1210 / from 1110).
     price_from: 1210,
     price_correct: 1320,
