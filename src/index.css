@@ -64,29 +64,52 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: "almarenaNeue Fallback";
+  src: local(Arial);
+  ascent-override: 76.6%;
+  descent-override: 18.33%;
+  line-gap-override: 0%;
+  size-adjust: 100.39%;
+}
+
+@font-face {
+  font-family: "generalSans Fallback";
+  src: local(Arial);
+  ascent-override: 99.89%;
+  descent-override: 23.74%;
+  line-gap-override: 9.89%;
+  size-adjust: 101.11%;
+}
+
 @theme {
-  --font-sans: "generalSans", system-ui, sans-serif;
-  --font-display: "almarenaNeue", "generalSans", system-ui, sans-serif;
+  --font-sans: "generalSans", "generalSans Fallback", system-ui, sans-serif;
+  --font-display: "almarenaNeue", "almarenaNeue Fallback", "generalSans",
+    "generalSans Fallback", system-ui, sans-serif;
   --color-primary: #034638;
   --color-primary-foreground: #fff;
   --color-accent: #00bf6f;
   --color-highlight: #d8e142;
   --color-highlight-foreground: #034638;
   --color-background: #fff;
-  --color-foreground: #0e0f0c;
+  --color-foreground: #000;
   --color-gray-50: #fafafa;
   --color-gray-100: #f5f5f5;
   --color-gray-200: #ebebeb;
-  --color-gray-400: #9ca39c;
+  --color-gray-300: #d4d4d4;
+  --color-gray-400: #a3a3a3;
   --color-gray-500: #6b6d6b;
   --color-gray-600: #454745;
-  --color-gray-700: #2f322f;
+  --color-gray-700: #3d3f3d;
+  --color-gray-800: #262826;
   --color-gray-900: #0e0f0c;
   --color-green-50: #e6f7f1;
   --color-border: #ebebeb;
   --color-input: #ebebeb;
   --color-ring: #034638;
   --color-muted-foreground: #454745;
+  --tracking-tight: -0.025em;
+  --shadow-xs: 0 1px 2px 0 #0000000d;
 }
 
 :root {
@@ -148,4 +171,20 @@ h6 {
 
 .animate-spin {
   animation: spin 1s linear infinite;
+}
+
+.shadow-xs {
+  box-shadow: var(--shadow-xs);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
