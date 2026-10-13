@@ -36,6 +36,7 @@ export const ROUTES = {
   cookies: '/cookies',
   cart: '/cart',
   account: '/account',
+  search: '/search',
   product: (slug: string) => `/p/${encodeURIComponent(slug)}`,
 } as const
 

@@ -6,10 +6,35 @@ import {
   ShoppingBag,
 } from 'lucide-react'
 import { formatDealPrice, type FeaturedDeal } from '../data/deals'
+import { useCart } from '../lib/cart'
 import { Link } from '../lib/routing'
 import { DealBadge } from './BrushHighlight'
 
 export function DealCard({ deal }: { deal: FeaturedDeal }) {
+  const { addItem } = useCart()
+  const productHref =
+    deal.href.startsWith('/p/') || deal.href.includes('?')
+      ? deal.href.split('?')[0]!
+      : deal.href
+
+  function onAdd() {
+    addItem({
+      slug: deal.slug ?? deal.id,
+      title: deal.title,
+      imageUrl: deal.imageUrl,
+      price: deal.price,
+      color: deal.colorName,
+      colorHex: deal.colorHex,
+      grade: deal.grade,
+      href:
+        deal.href.startsWith('/p/')
+          ? deal.href
+          : productHref.startsWith('/p/')
+            ? productHref
+            : `/offres`,
+    })
+  }
+
   return (
     <div className="flex flex-col rounded-xl border border-gray-100 bg-white p-3">
       <Link to={deal.href} className="group">
@@ -60,6 +85,7 @@ export function DealCard({ deal }: { deal: FeaturedDeal }) {
 
       <button
         type="button"
+        onClick={onAdd}
         className="mt-2.5 inline-flex h-8 w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-medium whitespace-nowrap text-primary-foreground transition-all hover:bg-primary/90"
       >
         <ShoppingBag className="h-4 w-4" aria-hidden="true" />

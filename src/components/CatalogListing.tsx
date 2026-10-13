@@ -1,6 +1,7 @@
-import { ArrowLeft, Zap } from 'lucide-react'
+import { ArrowLeft, ShoppingBag, Zap } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { formatEuro, getModels, modelPrice, type Model } from '../lib/api'
+import { useCart } from '../lib/cart'
 import { Link, ROUTES } from '../lib/routing'
 import { ListingColorDots } from './ColorSwatches'
 
@@ -19,6 +20,7 @@ export function CatalogListing({
   title?: string
   subtitle?: string
 }) {
+  const { addItem } = useCart()
   const [models, setModels] = useState<Model[] | null>(null)
   const [failed, setFailed] = useState(false)
   const [sort, setSort] = useState<SortMode>('recent')
@@ -113,13 +115,13 @@ export function CatalogListing({
           const neu = model.new_price ?? null
           const save =
             price != null && neu != null && neu > price ? neu - price : null
+          const title = model.display_name ?? model.name
           return (
-            <Link
+            <div
               key={model.id}
-              to={ROUTES.product(model.slug)}
-              className="group block rounded-xl border border-gray-100 bg-white p-4 transition-shadow hover:shadow-lg"
+              className="group flex flex-col rounded-xl border border-gray-100 bg-white p-4 transition-shadow hover:shadow-lg"
             >
-              <div className="flex gap-4 sm:block">
+              <Link to={ROUTES.product(model.slug)} className="flex gap-4 sm:block">
                 <div className="relative w-28 shrink-0 sm:mb-4 sm:w-full">
                   {model.delivery_speed === 'express' ? (
                     <span
@@ -155,7 +157,7 @@ export function CatalogListing({
                     {model.primary_image_url ? (
                       <img
                         src={model.primary_image_url}
-                        alt={model.display_name ?? model.name}
+                        alt={title}
                         className="absolute inset-0 h-full w-full object-contain"
                       />
                     ) : null}
@@ -165,7 +167,7 @@ export function CatalogListing({
                 <div className="flex min-w-0 flex-1 flex-col sm:block">
                   <ListingColorDots colors={model.colors} />
                   <h3 className="mb-1 font-display font-semibold text-gray-900 group-hover:text-gray-700">
-                    {model.display_name ?? model.name}
+                    {title}
                   </h3>
                   {price != null && (
                     <div className="flex items-baseline gap-2">
@@ -210,8 +212,36 @@ export function CatalogListing({
                     </div>
                   )}
                 </div>
+              </Link>
+              <div className="mt-3 flex gap-2">
+                <button
+                  type="button"
+                  disabled={price == null}
+                  onClick={() => {
+                    if (price == null) return
+                    addItem({
+                      slug: model.slug,
+                      title,
+                      imageUrl: model.primary_image_url ?? '',
+                      price,
+                      color: model.default_color ?? model.colors?.[0],
+                      grade: 'Parfait',
+                      href: ROUTES.product(model.slug),
+                    })
+                  }}
+                  className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full bg-primary px-3 text-sm font-semibold text-white hover:bg-primary/90 disabled:opacity-50"
+                >
+                  <ShoppingBag className="h-4 w-4" aria-hidden="true" />
+                  Ajouter
+                </button>
+                <Link
+                  to={ROUTES.product(model.slug)}
+                  className="inline-flex h-9 flex-1 items-center justify-center rounded-full border border-gray-200 px-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                >
+                  Voir la fiche
+                </Link>
               </div>
-            </Link>
+            </div>
           )
         })}
       </div>

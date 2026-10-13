@@ -69,7 +69,7 @@ export async function getModels(params: {
   category?: string
   tag?: string
   perPage?: number
-}) {
+} = {}) {
   // L'API attend `per_page` (snake_case).
   const perPage = params.perPage ?? 100
   const all: Model[] = []

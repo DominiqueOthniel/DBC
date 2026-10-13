@@ -20,6 +20,7 @@ import {
   type Model,
   type RelaxMode,
 } from '../lib/api'
+import { useCart } from '../lib/cart'
 import { Link, ROUTES } from '../lib/routing'
 
 function OptionButton({
@@ -79,6 +80,7 @@ type ResultState = {
 }
 
 export function PhoneFinder() {
+  const { addItem } = useCart()
   const [step, setStep] = useState(1)
   const [usage, setUsage] = useState<UsageOption | null>(null)
   const [storage, setStorage] = useState<StorageOption | null>(null)
@@ -292,12 +294,36 @@ export function PhoneFinder() {
                 {t('fromPrice', { price: formatEuro(price) })}
               </p>
             )}
-            <Link
-              to={result.href}
-              className="mt-6 inline-flex items-center rounded-full bg-primary px-6 py-3 font-semibold text-white hover:bg-primary/90"
-            >
-              {t('seeRecommended')}
-            </Link>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                to={result.href}
+                className="inline-flex items-center rounded-full bg-primary px-6 py-3 font-semibold text-white hover:bg-primary/90"
+              >
+                {t('seeRecommended')}
+              </Link>
+              {price != null ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    addItem({
+                      slug: result.model.slug,
+                      title:
+                        result.model.display_name ?? result.model.name,
+                      imageUrl: result.model.primary_image_url ?? '',
+                      price,
+                      color:
+                        result.model.default_color ??
+                        result.model.colors?.[0],
+                      grade: 'Parfait',
+                      href: result.href,
+                    })
+                  }
+                  className="inline-flex items-center rounded-full border border-primary px-6 py-3 font-semibold text-primary hover:bg-green-50"
+                >
+                  Ajouter au panier
+                </button>
+              ) : null}
+            </div>
           </div>
         </div>
         <SellerLine storeKey={storeKey} />

@@ -11,7 +11,8 @@ import {
 } from 'lucide-react'
 import { useEffect, useState, type MouseEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { Link, ROUTES } from '../lib/routing'
+import { useCart } from '../lib/cart'
+import { Link, ROUTES, useRouting } from '../lib/routing'
 import { Logo } from './Logo'
 import { Marquee } from './Marquee'
 
@@ -111,15 +112,31 @@ function LocalNavLink({
 }
 
 function SearchTrigger({ className = '' }: { className?: string }) {
+  const { navigate } = useRouting()
+  const [q, setQ] = useState('')
+
   return (
-    <Link
-      to={ROUTES.products}
-      className={`flex h-10 w-full items-center gap-2.5 rounded-full border border-gray-200 bg-gray-50 px-4 text-sm text-gray-500 transition-colors hover:border-gray-300 hover:bg-white ${className}`}
-      ariaLabel="Search for a product"
+    <form
+      className={`flex h-10 w-full items-center gap-2.5 rounded-full border border-gray-200 bg-gray-50 px-4 text-sm text-gray-500 transition-colors focus-within:border-gray-300 focus-within:bg-white ${className}`}
+      onSubmit={(e) => {
+        e.preventDefault()
+        const next = q.trim()
+        navigate(
+          next
+            ? `${ROUTES.search}?q=${encodeURIComponent(next)}`
+            : ROUTES.search,
+        )
+      }}
     >
       <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
-      <span className="truncate">Search for a product</span>
-    </Link>
+      <input
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder="Search for a product"
+        aria-label="Search for a product"
+        className="min-w-0 flex-1 bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-500"
+      />
+    </form>
   )
 }
 
@@ -279,6 +296,7 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const { count } = useCart()
 
   return (
     <div
@@ -328,12 +346,19 @@ export function Header() {
               <LocalNavLink
                 href={ROUTES.cart}
                 className="relative p-2.5 text-gray-900 transition-colors hover:text-gray-500"
-                ariaLabel="Panier"
+                ariaLabel={
+                  count > 0 ? `Panier, ${count} article${count > 1 ? 's' : ''}` : 'Panier'
+                }
               >
                 <ShoppingCart
                   className="h-6 w-6 lg:h-5 lg:w-5"
                   aria-hidden="true"
                 />
+                {count > 0 ? (
+                  <span className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white">
+                    {count > 99 ? '99+' : count}
+                  </span>
+                ) : null}
               </LocalNavLink>
             </div>
           </div>
