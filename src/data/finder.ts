@@ -54,6 +54,8 @@ export const finderCopy = {
   loadErrorCta: 'Voir tout le rayon',
   seeRecommended: 'Voir le produit conseillé',
   fromPrice: 'À partir de {price}',
+  localCatalogNote:
+    "Aperçu catalogue local: ce modèle n'est pas encore dans l'API DBC. La fiche renvoie vers le 17 Pro Max le plus proche.",
 } as const
 
 export const usageOptions: UsageOption[] = [

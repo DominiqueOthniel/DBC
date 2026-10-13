@@ -1,3 +1,9 @@
+import {
+  isLocalCatalogModel,
+  localModelFallbackHref,
+  mergeCatalogOverrides,
+} from '../data/catalogOverrides'
+
 export type Model = {
   id: string
   slug: string
@@ -55,7 +61,7 @@ export async function getModels(params: {
     page += 1
   } while (page <= pages && page <= 50)
 
-  return all
+  return mergeCatalogOverrides(all, params)
 }
 
 export function modelPrice(model: Model) {
@@ -63,9 +69,13 @@ export function modelPrice(model: Model) {
 }
 
 export function productHref(model: Model) {
+  const localHref = localModelFallbackHref(model)
+  if (localHref) return localHref
   const brand = model.brand.toLowerCase()
   return `https://dbcstore.fr/fr/products/smartphones/${brand}/${model.slug}`
 }
+
+export { isLocalCatalogModel }
 
 export function formatEuro(value: number) {
   return `${value.toLocaleString('fr-FR')} €`
@@ -80,8 +90,11 @@ export function pickRecommendation(
 ): { model: Model; relax: RelaxMode } | null {
   const withPrice = (list: Model[]) =>
     list.filter((m) => modelPrice(m) != null)
-  const byPrice = (a: Model, b: Model) =>
+  const byPriceAsc = (a: Model, b: Model) =>
     (modelPrice(a) ?? 0) - (modelPrice(b) ?? 0)
+  // Sans plafond budget (« montrez-moi le mieux »): privilégier le haut de gamme.
+  const byPriceDesc = (a: Model, b: Model) =>
+    (modelPrice(b) ?? 0) - (modelPrice(a) ?? 0)
 
   const allPriced = withPrice(all)
   const taggedPriced = tagged ? withPrice(tagged) : null
@@ -106,26 +119,29 @@ export function pickRecommendation(
   const preferred = taggedPriced ?? allPriced
 
   if (hasBudget) {
-    pools.push({ list: preferred.filter(inBudget).sort(byPrice), relax: 'none' })
+    pools.push({
+      list: preferred.filter(inBudget).sort(byPriceAsc),
+      relax: 'none',
+    })
     if (taggedPriced) {
       pools.push({
-        list: allPriced.filter(inBudget).sort(byPrice),
+        list: allPriced.filter(inBudget).sort(byPriceAsc),
         relax: 'tag',
       })
     }
     pools.push({
       list: [...allPriced].sort(
-        (a, b) => budgetDistance(a) - budgetDistance(b) || byPrice(a, b),
+        (a, b) => budgetDistance(a) - budgetDistance(b) || byPriceAsc(a, b),
       ),
       relax: 'budget',
     })
   } else {
-    pools.push({ list: [...preferred].sort(byPrice), relax: 'none' })
+    pools.push({ list: [...preferred].sort(byPriceDesc), relax: 'none' })
     if (taggedPriced) {
-      pools.push({ list: [...allPriced].sort(byPrice), relax: 'tag' })
+      pools.push({ list: [...allPriced].sort(byPriceDesc), relax: 'tag' })
     }
   }
-  pools.push({ list: [...allPriced].sort(byPrice), relax: 'fallback' })
+  pools.push({ list: [...allPriced].sort(byPriceAsc), relax: 'fallback' })
 
   const seen = new Set<string>()
   for (const pool of pools) {
