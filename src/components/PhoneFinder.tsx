@@ -14,7 +14,6 @@ import { STORES, getStoreStatus, hourFr } from '../data/stores'
 import {
   formatEuro,
   getModels,
-  isLocalCatalogModel,
   modelPrice,
   pickRecommendation,
   productHref,
@@ -299,11 +298,6 @@ export function PhoneFinder() {
             {price != null && (
               <p className="mt-1 text-base text-gray-700">
                 {t('fromPrice', { price: formatEuro(price) })}
-              </p>
-            )}
-            {isLocalCatalogModel(result.model) && (
-              <p className="mt-2 max-w-md text-sm text-gray-500">
-                {t('localCatalogNote')}
               </p>
             )}
             <a

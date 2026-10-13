@@ -1,21 +1,19 @@
 import type { Model } from '../lib/api'
 
 /**
- * Overrides locaux du catalogue finder.
- * L'API publique Railway n'expose pas encore ces modèles (POST /models → 405).
+ * Entrées catalogue ajoutées côté clone (absentes de l'API Railway publique).
  * Retirer une entrée dès qu'elle apparaît dans l'API (merge dédoublonne par slug).
  */
-export const LOCAL_CATALOG_OVERRIDES: Model[] = [
+export const CATALOG_OVERRIDES: Model[] = [
   {
-    id: 'local-iphone-18-pro-max',
+    id: 'iphone-18-pro-max',
     slug: 'iphone-18-pro-max',
     name: 'iPhone 18 Pro Max',
     display_name: 'iPhone 18 Pro Max',
     brand: 'Apple',
     category: 'mobile',
-    // Asset local (même convention de chemin que le catalogue Supabase).
     primary_image_url: '/product-images/iphone-18-pro-max/argent/0.jpg',
-    // Un cran au-dessus du 17 Pro Max (correct 1210 / from 1110).
+    // Base avant la baisse globale −2% appliquée dans getModels.
     price_from: 1210,
     price_correct: 1320,
     price_imparfait: 1210,
@@ -25,12 +23,8 @@ export const LOCAL_CATALOG_OVERRIDES: Model[] = [
   },
 ]
 
-export function isLocalCatalogModel(model: Model) {
-  return model.id.startsWith('local-')
-}
-
 /** Fiche live la plus proche tant que le slug n'existe pas sur dbcstore.fr */
-export function localModelFallbackHref(model: Model) {
+export function catalogFallbackHref(model: Model) {
   if (model.slug === 'iphone-18-pro-max') {
     return 'https://dbcstore.fr/fr/products/smartphones/apple/iphone-17-pro-max'
   }
@@ -41,7 +35,7 @@ export function mergeCatalogOverrides(
   items: Model[],
   params: { category?: string; tag?: string },
 ): Model[] {
-  const extras = LOCAL_CATALOG_OVERRIDES.filter((model) => {
+  const extras = CATALOG_OVERRIDES.filter((model) => {
     if (params.category && model.category !== params.category) return false
     if (params.tag && !model.tags.includes(params.tag)) return false
     if (items.some((item) => item.slug === model.slug || item.id === model.id)) {

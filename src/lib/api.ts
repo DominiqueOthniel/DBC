@@ -1,6 +1,5 @@
 import {
-  isLocalCatalogModel,
-  localModelFallbackHref,
+  catalogFallbackHref,
   mergeCatalogOverrides,
 } from '../data/catalogOverrides'
 
@@ -29,6 +28,31 @@ type ModelsResponse = {
 }
 
 const API_BASE = '/api/public/v1'
+
+/** Baisse catalogue affichée (−2%), arrondi à l'euro. */
+export const CATALOG_PRICE_FACTOR = 0.98
+
+const PRICE_FIELDS = [
+  'price_from',
+  'price_correct',
+  'price_imparfait',
+  'price_tres_bon',
+  'price_parfait',
+] as const
+
+function discountEuro(value: number | null): number | null {
+  if (value == null) return null
+  return Math.round(value * CATALOG_PRICE_FACTOR)
+}
+
+/** Transform client: −2% sur tous les champs prix d'un modèle. */
+export function applyCatalogPriceDiscount(model: Model): Model {
+  const next = { ...model }
+  for (const key of PRICE_FIELDS) {
+    next[key] = discountEuro(model[key])
+  }
+  return next
+}
 
 async function getJson<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`)
@@ -61,7 +85,7 @@ export async function getModels(params: {
     page += 1
   } while (page <= pages && page <= 50)
 
-  return mergeCatalogOverrides(all, params)
+  return mergeCatalogOverrides(all, params).map(applyCatalogPriceDiscount)
 }
 
 export function modelPrice(model: Model) {
@@ -69,13 +93,11 @@ export function modelPrice(model: Model) {
 }
 
 export function productHref(model: Model) {
-  const localHref = localModelFallbackHref(model)
-  if (localHref) return localHref
+  const fallback = catalogFallbackHref(model)
+  if (fallback) return fallback
   const brand = model.brand.toLowerCase()
   return `https://dbcstore.fr/fr/products/smartphones/${brand}/${model.slug}`
 }
-
-export { isLocalCatalogModel }
 
 export function formatEuro(value: number) {
   return `${value.toLocaleString('fr-FR')} €`
