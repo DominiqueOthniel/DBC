@@ -1,5 +1,5 @@
 const LINE =
-  "DBC, avant d'être un site, c'est un réseau de magasins physiques."
+  "DBC isn't just a website. We're also a network of physical stores."
 
 export function Marquee() {
   return (

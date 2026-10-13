@@ -6,7 +6,7 @@ export const PHONE_COLOR_HEX: Record<string, string> = {
   'Bleu intense': '#2E3F5C',
   'Orange cosmique': '#C96A3A',
   Argent: '#E5E6E1',
-  Noir: '#1D1D1F',
+  Noir: '#2C2C2E',
   'Noir sidéral': '#464342',
   Blanc: '#F5F5F0',
   'Blanc nuage': '#FCFCFC',
@@ -32,9 +32,10 @@ export const PHONE_COLOR_HEX: Record<string, string> = {
   'Ambre Titane': '#9CB0C4',
   Graphite: '#54524F',
   Violet: '#B7A6E6',
-  // iPhone 18 Pro Max (aligned with 17 Pro Max line)
-  'Bleu océan': '#2E3F5C',
-  'Orange solaire': '#C96A3A',
+  // iPhone 18 Pro Max (finitions Apple FR 2026)
+  Glacier: '#E8F2FE',
+  // Bordeaux: thumb Apple ≈ #4D1822; UI un peu plus saturé pour rester lisible
+  Bordeaux: '#6B2030',
 }
 
 export function colorHex(name: string): string {

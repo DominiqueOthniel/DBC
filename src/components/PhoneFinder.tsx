@@ -147,7 +147,7 @@ export function PhoneFinder() {
   const taggedReady =
     !usage?.tag || (taggedModels?.tag === usage.tag ? taggedModels.items : null)
 
-  const catalogHref = ROUTES.smartphones
+  const catalogHref = ROUTES.smartphones // listing local SPA
 
   useEffect(() => {
     if (step !== 4 || result || searchFailed || searchingRef.current) return

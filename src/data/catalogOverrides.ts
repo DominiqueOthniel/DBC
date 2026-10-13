@@ -9,7 +9,7 @@ export const CATALOG_OVERRIDES: Model[] = [
     display_name: 'iPhone 18 Pro Max',
     brand: 'Apple',
     category: 'mobile',
-    primary_image_url: '/product-images/iphone-18-pro-max/argent/0.jpg',
+    primary_image_url: '/product-images/iphone-18-pro-max/bordeaux/0.jpg',
     // Base avant la baisse globale −2% appliquée dans getModels.
     price_from: 1210,
     price_correct: 1320,
@@ -17,8 +17,9 @@ export const CATALOG_OVERRIDES: Model[] = [
     price_tres_bon: 1470,
     price_parfait: 1590,
     new_price: 1599,
-    colors: ['Bleu intense', 'Orange cosmique', 'Argent'],
-    default_color: 'Argent',
+    // Finitions officielles Apple FR (ordre shop: Bordeaux, Glacier, Argent, Noir)
+    colors: ['Bordeaux', 'Glacier', 'Argent', 'Noir'],
+    default_color: 'Bordeaux',
     delivery_speed: 'express',
     tags: ['best-camera', 'best-battery'],
   },

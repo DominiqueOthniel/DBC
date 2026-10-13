@@ -1,5 +1,6 @@
 import { ChevronDown } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
+import { Link } from '../lib/routing'
 
 const PAYMENTS = [
   { src: '/assets/icons/payment/cb.svg', alt: 'CB' },
@@ -14,39 +15,39 @@ const COLUMNS = [
   {
     title: 'À propos',
     links: [
-      { label: 'Notre histoire', href: '#' },
-      { label: 'Nos magasins', href: '#' },
-      { label: 'Standard DBC Labs', href: '#' },
-      { label: 'On recrute !', href: '#' },
+      { label: 'Notre histoire', href: '/about' },
+      { label: 'Nos magasins', href: '/stores' },
+      { label: 'Standard DBC Labs', href: '/quality' },
+      { label: 'Contact', href: '/contact' },
     ],
     social: true,
   },
   {
     title: 'On vous aide',
     links: [
-      { label: 'Nous contacter', href: '#' },
-      { label: "Centre d'aide", href: '#' },
-      { label: 'Livraison et délais', href: '#' },
-      { label: 'Retours et remboursements', href: '#' },
+      { label: 'Nous contacter', href: '/contact' },
+      { label: "Centre d'aide", href: '/help' },
+      { label: 'Livraison et délais', href: '/shipping' },
+      { label: 'Retours et remboursements', href: '/refund' },
     ],
   },
   {
     title: 'Nos services',
     links: [
-      { label: 'Standard DBC Labs', href: '#' },
-      { label: 'Réparation express', href: '#' },
-      { label: 'Reprendre mon appareil', href: '#' },
-      { label: 'Accessoires', href: '#' },
+      { label: 'Standard DBC Labs', href: '/quality' },
+      { label: 'Réparation express', href: '/reparation' },
+      { label: 'Reprendre mon appareil', href: '/reprise' },
+      { label: 'Accessoires', href: '/accessories' },
     ],
     payments: true,
   },
   {
     title: "La loi et l'ordre",
     links: [
-      { label: 'Conditions générales', href: '#' },
-      { label: 'Confidentialité', href: '#' },
-      { label: 'Mentions légales', href: '#' },
-      { label: 'Politique cookies', href: '#' },
+      { label: 'Conditions générales', href: '/cgv' },
+      { label: 'Confidentialité', href: '/privacy' },
+      { label: 'Mentions légales', href: '/legal' },
+      { label: 'Politique cookies', href: '/cookies' },
     ],
     cookies: true,
   },
@@ -153,13 +154,12 @@ export function Footer() {
                     Vous pouvez vous désabonner quand vous voulez. On n&apos;est
                     pas vexés.
                   </p>
-                  <a
+                  <Link
                     className="mt-1 block text-gray-900 underline"
-                    href="#"
-                    onClick={(e) => e.preventDefault()}
+                    to="/privacy"
                   >
                     Politique de confidentialité
-                  </a>
+                  </Link>
                   <p className="mt-1">
                     🎁 -10€ sur votre première commande après inscription.
                   </p>
@@ -184,13 +184,12 @@ export function Footer() {
                 <ul className="flex flex-col gap-2">
                   {col.links.map((link) => (
                     <li key={link.label}>
-                      <a
+                      <Link
                         className="text-[14px] text-gray-600 no-underline hover:text-gray-900 hover:underline"
-                        href="#"
-                        onClick={(e) => e.preventDefault()}
+                        to={link.href}
                       >
                         {link.label}
-                      </a>
+                      </Link>
                     </li>
                   ))}
                   {col.cookies && (

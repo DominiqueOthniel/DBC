@@ -16,7 +16,6 @@ export function ListingColorDots({
       {shown.map((name) => (
         <span
           key={name}
-          title={name}
           className="h-3 w-3 rounded-full border border-gray-200"
           style={{ backgroundColor: colorHex(name) }}
         />

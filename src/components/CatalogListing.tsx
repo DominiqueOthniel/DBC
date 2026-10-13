@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronDown, Zap } from 'lucide-react'
+import { ArrowLeft, Zap } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { formatEuro, getModels, modelPrice, type Model } from '../lib/api'
 import { Link, ROUTES } from '../lib/routing'
@@ -10,14 +10,24 @@ function listPrice(model: Model) {
   return model.price_from ?? modelPrice(model)
 }
 
-export function CatalogListing() {
+export function CatalogListing({
+  category = 'mobile',
+  title = 'Smartphones reconditionnés',
+  subtitle = 'Découvrez notre sélection de smartphones reconditionnés, testés et garantis.',
+}: {
+  category?: string
+  title?: string
+  subtitle?: string
+}) {
   const [models, setModels] = useState<Model[] | null>(null)
   const [failed, setFailed] = useState(false)
   const [sort, setSort] = useState<SortMode>('recent')
 
   useEffect(() => {
     let cancelled = false
-    getModels({ category: 'mobile', perPage: 100 })
+    setModels(null)
+    setFailed(false)
+    getModels({ category, perPage: 100 })
       .then((items) => {
         if (!cancelled) setModels(items)
       })
@@ -27,7 +37,7 @@ export function CatalogListing() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [category])
 
   const sorted = useMemo(() => {
     if (!models) return []
@@ -42,25 +52,30 @@ export function CatalogListing() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 md:py-8">
-      <div className="mb-5">
+      <div className="mb-5 flex flex-wrap gap-4">
         <Link
           to={ROUTES.home}
           className="inline-flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Retour au quiz
+          Accueil
+        </Link>
+        <Link
+          to={ROUTES.trouver}
+          className="text-sm font-medium text-primary underline underline-offset-2"
+        >
+          Trouver mon téléphone
         </Link>
       </div>
 
       <div className="rounded-2xl bg-primary px-5 py-6 text-white md:px-8 md:py-8">
         <h1 className="font-display text-2xl font-bold md:text-3xl">
-          Smartphones reconditionnés
+          {title}
         </h1>
         <p className="mt-2 max-w-xl text-sm text-white/85 md:text-base">
-          Découvrez notre sélection de smartphones reconditionnés, testés et
-          garantis.
+          {subtitle}
         </p>
-        <div className="mt-5 grid grid-cols-2 gap-3 text-xs font-medium text-white/90 sm:grid-cols-4 sm:text-sm">
+        <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 text-[13px] text-white/90 sm:flex sm:flex-wrap sm:items-center sm:gap-x-6">
           <span>Garantie 12 à 24 mois</span>
           <span>Livraison 24-72h</span>
           <span>Retour 14 jours</span>
@@ -70,33 +85,29 @@ export function CatalogListing() {
         </div>
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm font-medium text-gray-700">
+      <div className="mt-5 mb-4 flex items-center justify-between gap-3">
+        <span className="text-sm text-gray-500">
           {models
             ? `${models.length} produit(s) trouvé(s)`
             : failed
               ? 'Catalogue indisponible'
               : 'Chargement…'}
-        </p>
-        <label className="relative inline-flex items-center text-sm text-gray-700">
+        </span>
+        <label className="inline-flex items-center text-sm text-gray-700">
           <span className="sr-only">Tri</span>
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as SortMode)}
-            className="appearance-none rounded-full border border-gray-200 bg-white px-4 py-2 pr-9 text-sm font-medium text-gray-700 outline-none focus:border-primary"
+            className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 outline-none focus:border-primary"
           >
             <option value="recent">Plus récent</option>
             <option value="price-asc">Prix croissant</option>
             <option value="price-desc">Prix décroissant</option>
           </select>
-          <ChevronDown
-            className="pointer-events-none absolute right-3 h-4 w-4 text-gray-500"
-            aria-hidden="true"
-          />
         </label>
       </div>
 
-      <div className="mt-6 flex flex-col gap-3">
+      <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
         {sorted.map((model) => {
           const price = listPrice(model)
           const neu = model.new_price ?? null
@@ -140,7 +151,7 @@ export function CatalogListing() {
                       />
                     </span>
                   ) : null}
-                  <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-50">
+                  <div className="relative aspect-square overflow-hidden rounded-xl">
                     {model.primary_image_url ? (
                       <img
                         src={model.primary_image_url}

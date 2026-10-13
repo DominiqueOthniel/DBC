@@ -1,8 +1,26 @@
 import { ArrowLeft } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { formatEuro, getModels, modelPrice, type Model } from '../lib/api'
 import { Link, ROUTES } from '../lib/routing'
 import { ProductColorPicker } from './ColorSwatches'
+
+const COLOR_IMAGES: Record<string, Record<string, string>> = {
+  'iphone-18-pro-max': {
+    Bordeaux: '/product-images/iphone-18-pro-max/bordeaux/0.jpg',
+    Glacier: '/product-images/iphone-18-pro-max/glacier/0.jpg',
+    Argent: '/product-images/iphone-18-pro-max/argent/0.jpg',
+    Noir: '/product-images/iphone-18-pro-max/noir/0.jpg',
+  },
+}
+
+function initialColorFromUrl(colors: string[], fallback: string) {
+  if (typeof window === 'undefined') return fallback
+  const q = new URLSearchParams(window.location.search).get('color')
+  if (q && colors.some((c) => c.toLowerCase() === q.toLowerCase())) {
+    return colors.find((c) => c.toLowerCase() === q.toLowerCase()) ?? fallback
+  }
+  return fallback
+}
 
 export function ProductPage({ slug }: { slug: string }) {
   const [model, setModel] = useState<Model | null | undefined>(undefined)
@@ -13,15 +31,32 @@ export function ProductPage({ slug }: { slug: string }) {
     getModels({ category: 'mobile', perPage: 100 })
       .then((items) => {
         if (cancelled) return
-        const found = items.find((m) => m.slug === slug) ?? null
+        let found = items.find((m) => m.slug === slug) ?? null
+        if (!found) {
+          return getModels({ perPage: 100 }).then((all) => {
+            if (cancelled) return
+            found = all.find((m) => m.slug === slug) ?? null
+            setModel(found)
+            if (found) {
+              const colors = found.colors ?? []
+              const base =
+                found.colors?.find((c) => c === found!.default_color) ||
+                colors[0] ||
+                found.default_color ||
+                ''
+              setColor(initialColorFromUrl(colors, base || ''))
+            }
+          })
+        }
         setModel(found)
         if (found) {
-          const initial =
-            found.colors?.find((c) => c === found.default_color) ||
-            found.colors?.[0] ||
+          const colors = found.colors ?? []
+          const base =
+            found.colors?.find((c) => c === found!.default_color) ||
+            colors[0] ||
             found.default_color ||
             ''
-          setColor(initial || '')
+          setColor(initialColorFromUrl(colors, base || ''))
         }
       })
       .catch(() => {
@@ -31,6 +66,12 @@ export function ProductPage({ slug }: { slug: string }) {
       cancelled = true
     }
   }, [slug])
+
+  const imageUrl = useMemo(() => {
+    if (!model) return null
+    const byColor = COLOR_IMAGES[model.slug]?.[color]
+    return byColor || model.primary_image_url
+  }, [model, color])
 
   if (model === undefined) {
     return (
@@ -71,19 +112,19 @@ export function ProductPage({ slug }: { slug: string }) {
           Retour au rayon
         </Link>
         <Link
-          to={ROUTES.home}
+          to={ROUTES.trouver}
           className="text-sm font-medium text-primary underline underline-offset-2"
         >
-          Retour au quiz
+          Trouver mon téléphone
         </Link>
       </div>
 
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
-        <div className="relative aspect-square w-full shrink-0 overflow-hidden rounded-xl bg-gray-50 sm:h-72 sm:w-72 sm:aspect-auto">
-          {model.primary_image_url ? (
+        <div className="relative aspect-square w-full shrink-0 overflow-hidden rounded-xl bg-gray-50 sm:aspect-auto sm:h-72 sm:w-72">
+          {imageUrl ? (
             <img
-              src={model.primary_image_url}
-              alt={model.display_name ?? model.name}
+              src={imageUrl}
+              alt={`${model.display_name ?? model.name}${color ? ` ${color}` : ''}`}
               className="absolute inset-0 h-full w-full object-contain p-4"
             />
           ) : null}
@@ -139,14 +180,19 @@ export function ProductPage({ slug }: { slug: string }) {
           <ProductColorPicker
             colors={colors}
             value={color || colors[0] || ''}
-            onChange={setColor}
+            onChange={(name) => {
+              setColor(name)
+              const url = new URL(window.location.href)
+              url.searchParams.set('color', name)
+              window.history.replaceState({}, '', url.pathname + url.search)
+            }}
           />
 
           <Link
-            to={ROUTES.home}
+            to={ROUTES.cart}
             className="mt-8 inline-flex w-full items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-primary/90 sm:w-auto"
           >
-            Retour au quiz
+            Ajouter au panier
           </Link>
         </div>
       </div>

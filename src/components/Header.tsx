@@ -17,55 +17,55 @@ import { Marquee } from './Marquee'
 
 const NAV = [
   { label: 'Smartphones', href: ROUTES.smartphones },
-  { label: 'PC Portables', href: '#' },
-  { label: 'Tablettes', href: '#' },
-  { label: 'Consoles', href: '#' },
-  { label: 'Montres', href: '#' },
-  { label: 'Audio', href: '#' },
-  { label: 'Qualité', href: '#' },
+  { label: 'PC Portables', href: ROUTES.laptops },
+  { label: 'Tablettes', href: ROUTES.tablets },
+  { label: 'Montres', href: ROUTES.smartwatches },
+  { label: 'Audio', href: ROUTES.audio },
+  { label: 'Offres', href: ROUTES.offres },
+  { label: 'Qualité', href: ROUTES.quality },
 ]
 
 const MENU_CATEGORIES = [
   { label: 'Smartphones', href: ROUTES.smartphones },
-  { label: 'PC Portables', href: '#' },
-  { label: 'Tablettes', href: '#' },
-  { label: 'Consoles', href: '#', soon: true },
-  { label: 'Montres', href: '#' },
-  { label: 'Audio', href: '#' },
+  { label: 'PC Portables', href: ROUTES.laptops },
+  { label: 'Tablettes', href: ROUTES.tablets },
+  { label: 'Montres', href: ROUTES.smartwatches },
+  { label: 'Audio', href: ROUTES.audio },
+  { label: 'Accessoires', href: ROUTES.accessories },
 ]
 
 const MENU_LINKS = [
-  { label: 'Standard DBC Labs', href: '#' },
-  { label: 'Notre impact', href: '#' },
-  { label: 'Nos adresses', href: '#' },
-  { label: 'Contact', href: '#' },
-  { label: 'FAQ', href: '#' },
-  { label: 'Accessoires', href: '#' },
+  { label: 'Standard DBC Labs', href: ROUTES.quality },
+  { label: 'Notre impact', href: ROUTES.about },
+  { label: 'Nos adresses', href: ROUTES.stores },
+  { label: 'Contact', href: ROUTES.contact },
+  { label: 'FAQ', href: ROUTES.faq },
+  { label: 'Offres', href: ROUTES.offres },
 ]
 
 const BON_A_SAVOIR = [
   {
     title: 'Trouver mon téléphone',
     subtitle: '3 questions, on vous le met de côté',
-    href: ROUTES.home,
+    href: ROUTES.trouver,
     Icon: Smartphone,
   },
   {
     title: 'Revendre',
     subtitle: "Gagnez de l'argent avec votre ancien appareil",
-    href: '#',
+    href: ROUTES.reprise,
     Icon: ArrowLeftRight,
   },
   {
     title: 'Réparation',
     subtitle: 'Écran, batterie… estimez le prix',
-    href: '#',
+    href: ROUTES.reparation,
     Icon: Wrench,
   },
   {
     title: 'Disponibilité magasin',
     subtitle: 'Vérifiez en temps réel la dispo près de chez vous',
-    href: '#',
+    href: ROUTES.stores,
     Icon: Store,
   },
 ]
@@ -113,12 +113,12 @@ function LocalNavLink({
 function SearchTrigger({ className = '' }: { className?: string }) {
   return (
     <Link
-      to={ROUTES.smartphones}
+      to={ROUTES.products}
       className={`flex h-10 w-full items-center gap-2.5 rounded-full border border-gray-200 bg-gray-50 px-4 text-sm text-gray-500 transition-colors hover:border-gray-300 hover:bg-white ${className}`}
-      ariaLabel="Rechercher un produit"
+      ariaLabel="Search for a product"
     >
       <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
-      <span className="truncate">Rechercher un produit</span>
+      <span className="truncate">Search for a product</span>
     </Link>
   )
 }
@@ -185,38 +185,22 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
 
               <div className="mb-1 border-t border-gray-100" />
 
-              {MENU_CATEGORIES.map((item) =>
-                item.soon ? (
-                  <button
-                    key={item.label}
-                    type="button"
-                    disabled
-                    className="flex w-full cursor-not-allowed items-center justify-between py-4 text-left opacity-50"
-                  >
-                    <span className="flex items-center gap-2 text-[17px] font-semibold text-gray-900">
-                      {item.label}
-                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500">
-                        Bientôt
-                      </span>
-                    </span>
-                  </button>
-                ) : (
-                  <LocalNavLink
-                    key={item.label}
-                    href={item.href}
-                    className="flex w-full items-center justify-between py-4 text-left"
-                    onNavigate={onClose}
-                  >
-                    <span className="flex items-center gap-2 text-[17px] font-semibold text-gray-900">
-                      {item.label}
-                    </span>
-                    <ChevronRight
-                      className="h-5 w-5 text-gray-400"
-                      aria-hidden="true"
-                    />
-                  </LocalNavLink>
-                ),
-              )}
+              {MENU_CATEGORIES.map((item) => (
+                <LocalNavLink
+                  key={item.label}
+                  href={item.href}
+                  className="flex w-full items-center justify-between py-4 text-left"
+                  onNavigate={onClose}
+                >
+                  <span className="flex items-center gap-2 text-[17px] font-semibold text-gray-900">
+                    {item.label}
+                  </span>
+                  <ChevronRight
+                    className="h-5 w-5 text-gray-400"
+                    aria-hidden="true"
+                  />
+                </LocalNavLink>
+              ))}
 
               <div className="my-3 border-t border-gray-100" />
 
@@ -335,14 +319,14 @@ export function Header() {
 
             <div className="flex items-center gap-1 lg:gap-2">
               <LocalNavLink
-                href="#"
+                href={ROUTES.reprise}
                 className="hidden items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-[13px] font-semibold text-gray-900 transition-all hover:border-gray-900 hover:shadow-sm lg:flex"
               >
                 <ArrowLeftRight className="h-3.5 w-3.5" aria-hidden="true" />
                 Revendre
               </LocalNavLink>
               <LocalNavLink
-                href="#"
+                href={ROUTES.cart}
                 className="relative p-2.5 text-gray-900 transition-colors hover:text-gray-500"
                 ariaLabel="Panier"
               >
@@ -370,7 +354,7 @@ export function Header() {
                 </LocalNavLink>
               ))}
               <Link
-                to={ROUTES.home}
+                to={ROUTES.trouver}
                 className="whitespace-nowrap rounded-lg px-3.5 py-1.5 text-[13px] font-semibold text-primary transition-all hover:text-primary/80"
               >
                 Trouver mon téléphone
