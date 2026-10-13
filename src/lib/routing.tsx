@@ -108,7 +108,7 @@ export function Link({
   )
 }
 
-/** Lien interne sûr: jamais dbcstore.fr. Chemins connus ou ancre locale. */
+/** Résout les liens vers des chemins internes du site. */
 export function stayLocal(href: string): string {
   if (!href) return '#'
   if (href.startsWith('/') || href.startsWith('#')) return href

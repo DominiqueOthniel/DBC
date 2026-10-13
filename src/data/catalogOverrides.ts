@@ -1,9 +1,6 @@
 import type { Model } from '../lib/api'
 
-/**
- * Entrées catalogue ajoutées côté clone (absentes de l'API Railway publique).
- * Retirer une entrée dès qu'elle apparaît dans l'API (merge dédoublonne par slug).
- */
+/** Entrées catalogue additionnelles (fusionnées avec l'API, dédoublonnage par slug). */
 export const CATALOG_OVERRIDES: Model[] = [
   {
     id: 'iphone-18-pro-max',
@@ -19,6 +16,10 @@ export const CATALOG_OVERRIDES: Model[] = [
     price_imparfait: 1210,
     price_tres_bon: 1470,
     price_parfait: 1590,
+    new_price: 1599,
+    colors: ['Bleu intense', 'Orange cosmique', 'Argent'],
+    default_color: 'Argent',
+    delivery_speed: 'express',
     tags: ['best-camera', 'best-battery'],
   },
 ]

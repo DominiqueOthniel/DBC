@@ -2,16 +2,27 @@ import { ArrowLeft } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { formatEuro, getModels, modelPrice, type Model } from '../lib/api'
 import { Link, ROUTES } from '../lib/routing'
+import { ProductColorPicker } from './ColorSwatches'
 
 export function ProductPage({ slug }: { slug: string }) {
   const [model, setModel] = useState<Model | null | undefined>(undefined)
+  const [color, setColor] = useState<string>('')
 
   useEffect(() => {
     let cancelled = false
     getModels({ category: 'mobile', perPage: 100 })
       .then((items) => {
         if (cancelled) return
-        setModel(items.find((m) => m.slug === slug) ?? null)
+        const found = items.find((m) => m.slug === slug) ?? null
+        setModel(found)
+        if (found) {
+          const initial =
+            found.colors?.find((c) => c === found.default_color) ||
+            found.colors?.[0] ||
+            found.default_color ||
+            ''
+          setColor(initial || '')
+        }
       })
       .catch(() => {
         if (!cancelled) setModel(null)
@@ -43,7 +54,11 @@ export function ProductPage({ slug }: { slug: string }) {
     )
   }
 
-  const price = modelPrice(model) ?? model.price_from
+  const price = model.price_from ?? modelPrice(model)
+  const neu = model.new_price ?? null
+  const save =
+    price != null && neu != null && neu > price ? neu - price : null
+  const colors = model.colors ?? []
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 md:py-10">
@@ -64,32 +79,72 @@ export function ProductPage({ slug }: { slug: string }) {
       </div>
 
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
-        <div className="flex h-56 w-full shrink-0 items-center justify-center rounded-2xl bg-gray-50 p-4 sm:h-64 sm:w-64">
+        <div className="relative aspect-square w-full shrink-0 overflow-hidden rounded-xl bg-gray-50 sm:h-72 sm:w-72 sm:aspect-auto">
           {model.primary_image_url ? (
             <img
               src={model.primary_image_url}
               alt={model.display_name ?? model.name}
-              className="h-full w-full object-contain"
+              className="absolute inset-0 h-full w-full object-contain p-4"
             />
           ) : null}
         </div>
-        <div>
+        <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-gray-500">{model.brand}</p>
-          <h1 className="mt-1 font-display text-2xl font-bold text-gray-900 md:text-3xl">
+          <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">
             {model.display_name ?? model.name}
           </h1>
           {price != null && (
-            <p className="mt-3 text-base text-gray-700">
-              À partir de {formatEuro(price)}
-            </p>
+            <div className="mt-3 flex flex-wrap items-baseline gap-2">
+              <span className="text-xs text-gray-500">À partir de</span>
+              <span className="text-lg font-bold text-gray-900">
+                {formatEuro(price)}
+              </span>
+            </div>
           )}
-          <p className="mt-4 max-w-md text-sm leading-relaxed text-gray-500">
-            Fiche produit du clone. Les prix affichés incluent la baisse de 2%
-            appliquée sur le catalogue chargé.
-          </p>
+          {(neu != null || save != null) && (
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              {neu != null ? (
+                <span className="text-sm text-gray-400 line-through">
+                  {formatEuro(neu)} neuf
+                </span>
+              ) : null}
+              {save != null ? (
+                <span
+                  className="relative inline-flex items-center px-1 text-[11px] font-bold text-primary"
+                  style={{ isolation: 'isolate' }}
+                >
+                  <span className="relative z-[1]">
+                    Économisez {formatEuro(save)}
+                  </span>
+                  <img
+                    src="/assets/dbc-brush-highlight.svg"
+                    alt=""
+                    aria-hidden="true"
+                    className="pointer-events-none absolute"
+                    style={{
+                      zIndex: 0,
+                      top: '15%',
+                      left: '0px',
+                      right: '-8px',
+                      bottom: '-2px',
+                      width: 'calc(100% + 8px)',
+                      height: 'auto',
+                    }}
+                  />
+                </span>
+              ) : null}
+            </div>
+          )}
+
+          <ProductColorPicker
+            colors={colors}
+            value={color || colors[0] || ''}
+            onChange={setColor}
+          />
+
           <Link
             to={ROUTES.home}
-            className="mt-6 inline-flex items-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white hover:bg-primary/90"
+            className="mt-8 inline-flex w-full items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-primary/90 sm:w-auto"
           >
             Retour au quiz
           </Link>

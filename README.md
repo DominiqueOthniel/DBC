@@ -1,6 +1,6 @@
 # DBC Trouver mon téléphone
 
-Clone local frontend de la page [Trouver mon téléphone](https://dbcstore.fr/fr/trouver) (quiz 3 questions, header, footer).
+Frontend de la page Trouver mon téléphone (quiz 3 questions, header, footer, rayon smartphones).
 
 ## Stack
 
@@ -13,7 +13,7 @@ npm install
 npm run dev
 ```
 
-Le proxy Vite relaie `/api/public` vers l’API publique DBC pour le stock smartphones.
+Le proxy Vite relaie `/api/public` vers l'API publique pour le stock smartphones.
 
 ## Build
 

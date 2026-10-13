@@ -14,6 +14,10 @@ export type Model = {
   price_imparfait: number | null
   price_tres_bon: number | null
   price_parfait: number | null
+  new_price?: number | null
+  colors?: string[]
+  default_color?: string | null
+  delivery_speed?: string | null
   tags: string[]
 }
 
@@ -36,9 +40,10 @@ const PRICE_FIELDS = [
   'price_imparfait',
   'price_tres_bon',
   'price_parfait',
+  'new_price',
 ] as const
 
-function discountEuro(value: number | null): number | null {
+function discountEuro(value: number | null | undefined): number | null {
   if (value == null) return null
   return Math.round(value * CATALOG_PRICE_FACTOR)
 }
@@ -65,7 +70,7 @@ export async function getModels(params: {
   tag?: string
   perPage?: number
 }) {
-  // L'API Railway attend `per_page` (snake_case). `perPage` est ignoré → 20 items.
+  // L'API attend `per_page` (snake_case).
   const perPage = params.perPage ?? 100
   const all: Model[] = []
   let page = 1
@@ -90,7 +95,6 @@ export function modelPrice(model: Model) {
   return model.price_correct ?? model.price_from ?? null
 }
 
-/** Fiche produit locale uniquement (jamais dbcstore.fr). */
 export function productHref(model: Model) {
   return ROUTES.product(model.slug)
 }
