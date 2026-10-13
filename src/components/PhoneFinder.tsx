@@ -1,5 +1,5 @@
 import { ArrowLeft, Loader2, Phone, RotateCcw } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   ANSWERS_KEY,
   budgetOptions,
@@ -20,6 +20,7 @@ import {
   type Model,
   type RelaxMode,
 } from '../lib/api'
+import { Link, ROUTES } from '../lib/routing'
 
 function OptionButton({
   label,
@@ -146,16 +147,7 @@ export function PhoneFinder() {
   const taggedReady =
     !usage?.tag || (taggedModels?.tag === usage.tag ? taggedModels.items : null)
 
-  const catalogHref = useMemo(() => {
-    const params = new URLSearchParams()
-    if (usage?.tag) params.set('tag', usage.tag)
-    if (budget?.min != null && budget.min > 0) {
-      params.set('min_price', String(budget.min))
-    }
-    if (budget?.max != null) params.set('max_price', String(budget.max))
-    const q = params.toString()
-    return `https://dbcstore.fr/fr/products/smartphones${q ? `?${q}` : ''}`
-  }, [usage, budget])
+  const catalogHref = ROUTES.smartphones
 
   useEffect(() => {
     if (step !== 4 || result || searchFailed || searchingRef.current) return
@@ -300,14 +292,12 @@ export function PhoneFinder() {
                 {t('fromPrice', { price: formatEuro(price) })}
               </p>
             )}
-            <a
-              href={result.href}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              to={result.href}
               className="mt-6 inline-flex items-center rounded-full bg-primary px-6 py-3 font-semibold text-white hover:bg-primary/90"
             >
               {t('seeRecommended')}
-            </a>
+            </Link>
           </div>
         </div>
         <SellerLine storeKey={storeKey} />
@@ -322,14 +312,14 @@ export function PhoneFinder() {
         {showError ? (
           <>
             <p className="text-base text-gray-700">{t('loadError')}</p>
-            <a
-              href={catalogHref}
+            <Link
+              to={catalogHref}
               className="mt-4 inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-base font-semibold text-white hover:bg-primary/90"
               data-track="finder:erreur_tout_voir"
               data-zone="finder"
             >
               {t('loadErrorCta')}
-            </a>
+            </Link>
           </>
         ) : (
           <>
@@ -372,14 +362,14 @@ export function PhoneFinder() {
         <span className="text-xs font-medium text-gray-500">
           {t('stepLabel', { current: step, total: 3 })}
         </span>
-        <a
+        <Link
+          to={catalogHref}
           className="text-sm font-semibold text-primary underline underline-offset-2 hover:text-primary/80"
           data-track={`finder:tout_voir:q${step}`}
           data-zone="finder"
-          href={catalogHref}
         >
           {t('seeAllTop')}
-        </a>
+        </Link>
       </div>
 
       <div className="mt-3 h-1 overflow-hidden rounded-full bg-gray-200">
@@ -427,14 +417,14 @@ export function PhoneFinder() {
       </div>
 
       <div className="mt-6 text-center">
-        <a
+        <Link
+          to={catalogHref}
           className="text-sm font-medium text-gray-700 underline underline-offset-4 hover:text-gray-900"
           data-track={`finder:je_sais:q${step}`}
           data-zone="finder"
-          href={catalogHref}
         >
           {t('knowWhatIWant')}
-        </a>
+        </Link>
       </div>
 
       <SellerLine storeKey={storeKey} />

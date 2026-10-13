@@ -1,7 +1,5 @@
-import {
-  catalogFallbackHref,
-  mergeCatalogOverrides,
-} from '../data/catalogOverrides'
+import { mergeCatalogOverrides } from '../data/catalogOverrides'
+import { ROUTES } from './routing'
 
 export type Model = {
   id: string
@@ -92,11 +90,9 @@ export function modelPrice(model: Model) {
   return model.price_correct ?? model.price_from ?? null
 }
 
+/** Fiche produit locale uniquement (jamais dbcstore.fr). */
 export function productHref(model: Model) {
-  const fallback = catalogFallbackHref(model)
-  if (fallback) return fallback
-  const brand = model.brand.toLowerCase()
-  return `https://dbcstore.fr/fr/products/smartphones/${brand}/${model.slug}`
+  return ROUTES.product(model.slug)
 }
 
 export function formatEuro(value: number) {
@@ -114,7 +110,6 @@ export function pickRecommendation(
     list.filter((m) => modelPrice(m) != null)
   const byPriceAsc = (a: Model, b: Model) =>
     (modelPrice(a) ?? 0) - (modelPrice(b) ?? 0)
-  // Sans plafond budget (« montrez-moi le mieux »): privilégier le haut de gamme.
   const byPriceDesc = (a: Model, b: Model) =>
     (modelPrice(b) ?? 0) - (modelPrice(a) ?? 0)
 

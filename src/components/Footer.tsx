@@ -14,48 +14,39 @@ const COLUMNS = [
   {
     title: 'À propos',
     links: [
-      { label: 'Notre histoire', href: 'https://dbcstore.fr/fr/about' },
-      { label: 'Nos magasins', href: 'https://dbcstore.fr/fr/stores' },
-      { label: 'Standard DBC Labs', href: 'https://dbcstore.fr/fr/quality' },
-      { label: 'On recrute !', href: 'https://dbcstore.fr/fr/about' },
+      { label: 'Notre histoire', href: '#' },
+      { label: 'Nos magasins', href: '#' },
+      { label: 'Standard DBC Labs', href: '#' },
+      { label: 'On recrute !', href: '#' },
     ],
     social: true,
   },
   {
     title: 'On vous aide',
     links: [
-      { label: 'Nous contacter', href: 'https://dbcstore.fr/fr/contact' },
-      { label: "Centre d'aide", href: 'https://dbcstore.fr/fr/help' },
-      { label: 'Livraison et délais', href: 'https://dbcstore.fr/fr/shipping' },
-      {
-        label: 'Retours et remboursements',
-        href: 'https://dbcstore.fr/fr/refund',
-      },
+      { label: 'Nous contacter', href: '#' },
+      { label: "Centre d'aide", href: '#' },
+      { label: 'Livraison et délais', href: '#' },
+      { label: 'Retours et remboursements', href: '#' },
     ],
   },
   {
     title: 'Nos services',
     links: [
-      { label: 'Standard DBC Labs', href: 'https://dbcstore.fr/fr/quality' },
-      {
-        label: 'Réparation express',
-        href: 'https://dbcstore.fr/fr/reparation',
-      },
-      {
-        label: 'Reprendre mon appareil',
-        href: 'https://dbcstore.fr/fr/reprise',
-      },
-      { label: 'Accessoires', href: 'https://dbcstore.fr/fr/accessories' },
+      { label: 'Standard DBC Labs', href: '#' },
+      { label: 'Réparation express', href: '#' },
+      { label: 'Reprendre mon appareil', href: '#' },
+      { label: 'Accessoires', href: '#' },
     ],
     payments: true,
   },
   {
     title: "La loi et l'ordre",
     links: [
-      { label: 'Conditions générales', href: 'https://dbcstore.fr/fr/cgv' },
-      { label: 'Confidentialité', href: 'https://dbcstore.fr/fr/privacy' },
-      { label: 'Mentions légales', href: 'https://dbcstore.fr/fr/legal' },
-      { label: 'Politique cookies', href: 'https://dbcstore.fr/fr/cookies' },
+      { label: 'Conditions générales', href: '#' },
+      { label: 'Confidentialité', href: '#' },
+      { label: 'Mentions légales', href: '#' },
+      { label: 'Politique cookies', href: '#' },
     ],
     cookies: true,
   },
@@ -164,7 +155,8 @@ export function Footer() {
                   </p>
                   <a
                     className="mt-1 block text-gray-900 underline"
-                    href="https://dbcstore.fr/fr/privacy"
+                    href="#"
+                    onClick={(e) => e.preventDefault()}
                   >
                     Politique de confidentialité
                   </a>
@@ -194,7 +186,8 @@ export function Footer() {
                     <li key={link.label}>
                       <a
                         className="text-[14px] text-gray-600 no-underline hover:text-gray-900 hover:underline"
-                        href={link.href}
+                        href="#"
+                        onClick={(e) => e.preventDefault()}
                       >
                         {link.label}
                       </a>

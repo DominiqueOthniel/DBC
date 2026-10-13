@@ -23,14 +23,6 @@ export const CATALOG_OVERRIDES: Model[] = [
   },
 ]
 
-/** Fiche live la plus proche tant que le slug n'existe pas sur dbcstore.fr */
-export function catalogFallbackHref(model: Model) {
-  if (model.slug === 'iphone-18-pro-max') {
-    return 'https://dbcstore.fr/fr/products/smartphones/apple/iphone-17-pro-max'
-  }
-  return null
-}
-
 export function mergeCatalogOverrides(
   items: Model[],
   params: { category?: string; tag?: string },

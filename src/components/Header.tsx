@@ -9,83 +9,117 @@ import {
   Wrench,
   X,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type MouseEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { Link, ROUTES } from '../lib/routing'
 import { Logo } from './Logo'
 import { Marquee } from './Marquee'
 
 const NAV = [
-  { label: 'Smartphones', href: 'https://dbcstore.fr/fr/products/smartphones' },
-  { label: 'PC Portables', href: 'https://dbcstore.fr/fr/products/laptops' },
-  { label: 'Tablettes', href: 'https://dbcstore.fr/fr/products/tablets' },
-  { label: 'Consoles', href: 'https://dbcstore.fr/fr/products/consoles' },
-  { label: 'Montres', href: 'https://dbcstore.fr/fr/products/smartwatches' },
-  { label: 'Audio', href: 'https://dbcstore.fr/fr/products/audio' },
-  { label: 'Qualité', href: 'https://dbcstore.fr/fr/quality' },
+  { label: 'Smartphones', href: ROUTES.smartphones },
+  { label: 'PC Portables', href: '#' },
+  { label: 'Tablettes', href: '#' },
+  { label: 'Consoles', href: '#' },
+  { label: 'Montres', href: '#' },
+  { label: 'Audio', href: '#' },
+  { label: 'Qualité', href: '#' },
 ]
 
 const MENU_CATEGORIES = [
-  {
-    label: 'Smartphones',
-    href: 'https://dbcstore.fr/fr/products/smartphones',
-  },
-  { label: 'PC Portables', href: 'https://dbcstore.fr/fr/products/laptops' },
-  { label: 'Tablettes', href: 'https://dbcstore.fr/fr/products/tablets' },
-  {
-    label: 'Consoles',
-    href: 'https://dbcstore.fr/fr/products/consoles',
-    soon: true,
-  },
-  { label: 'Montres', href: 'https://dbcstore.fr/fr/products/smartwatches' },
-  { label: 'Audio', href: 'https://dbcstore.fr/fr/products/audio' },
+  { label: 'Smartphones', href: ROUTES.smartphones },
+  { label: 'PC Portables', href: '#' },
+  { label: 'Tablettes', href: '#' },
+  { label: 'Consoles', href: '#', soon: true },
+  { label: 'Montres', href: '#' },
+  { label: 'Audio', href: '#' },
 ]
 
 const MENU_LINKS = [
-  { label: 'Standard DBC Labs', href: 'https://dbcstore.fr/fr/quality' },
-  { label: 'Notre impact', href: 'https://dbcstore.fr/fr/about' },
-  { label: 'Nos adresses', href: 'https://dbcstore.fr/fr/stores' },
-  { label: 'Contact', href: 'https://dbcstore.fr/fr/contact' },
-  { label: 'FAQ', href: 'https://dbcstore.fr/fr/faq' },
-  { label: 'Accessoires', href: 'https://dbcstore.fr/fr/accessories' },
+  { label: 'Standard DBC Labs', href: '#' },
+  { label: 'Notre impact', href: '#' },
+  { label: 'Nos adresses', href: '#' },
+  { label: 'Contact', href: '#' },
+  { label: 'FAQ', href: '#' },
+  { label: 'Accessoires', href: '#' },
 ]
 
 const BON_A_SAVOIR = [
   {
     title: 'Trouver mon téléphone',
     subtitle: '3 questions, on vous le met de côté',
-    href: '/',
+    href: ROUTES.home,
     Icon: Smartphone,
   },
   {
     title: 'Revendre',
     subtitle: "Gagnez de l'argent avec votre ancien appareil",
-    href: 'https://dbcstore.fr/fr/reprise',
+    href: '#',
     Icon: ArrowLeftRight,
   },
   {
     title: 'Réparation',
     subtitle: 'Écran, batterie… estimez le prix',
-    href: 'https://dbcstore.fr/fr/reparation',
+    href: '#',
     Icon: Wrench,
   },
   {
     title: 'Disponibilité magasin',
     subtitle: 'Vérifiez en temps réel la dispo près de chez vous',
-    href: 'https://dbcstore.fr/fr/stock-magasin',
+    href: '#',
     Icon: Store,
   },
 ]
 
-function SearchTrigger({ className = '' }: { className?: string }) {
+function LocalNavLink({
+  href,
+  className,
+  children,
+  onNavigate,
+  ariaLabel,
+}: {
+  href: string
+  className?: string
+  children: ReactNode
+  onNavigate?: () => void
+  ariaLabel?: string
+}) {
+  if (href.startsWith('/') && href !== '#') {
+    return (
+      <Link
+        to={href}
+        className={className}
+        ariaLabel={ariaLabel}
+        onNavigate={onNavigate}
+      >
+        {children}
+      </Link>
+    )
+  }
   return (
     <a
-      href="https://dbcstore.fr/fr"
+      href="#"
+      className={className}
+      aria-label={ariaLabel}
+      onClick={(e: MouseEvent<HTMLAnchorElement>) => {
+        e.preventDefault()
+        onNavigate?.()
+      }}
+    >
+      {children}
+    </a>
+  )
+}
+
+function SearchTrigger({ className = '' }: { className?: string }) {
+  return (
+    <Link
+      to={ROUTES.smartphones}
       className={`flex h-10 w-full items-center gap-2.5 rounded-full border border-gray-200 bg-gray-50 px-4 text-sm text-gray-500 transition-colors hover:border-gray-300 hover:bg-white ${className}`}
-      aria-label="Rechercher un produit"
+      ariaLabel="Rechercher un produit"
     >
       <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
       <span className="truncate">Rechercher un produit</span>
-    </a>
+    </Link>
   )
 }
 
@@ -127,11 +161,11 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
               </p>
               <div className="mb-5 flex flex-col gap-3">
                 {BON_A_SAVOIR.map(({ title, subtitle, href, Icon }) => (
-                  <a
+                  <LocalNavLink
                     key={title}
                     href={href}
                     className="flex items-center gap-3 rounded-xl bg-gray-50 p-4 transition-colors hover:bg-gray-100"
-                    onClick={onClose}
+                    onNavigate={onClose}
                   >
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
                       <Icon
@@ -145,7 +179,7 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
                       </p>
                       <p className="text-[13px] text-gray-500">{subtitle}</p>
                     </div>
-                  </a>
+                  </LocalNavLink>
                 ))}
               </div>
 
@@ -167,11 +201,11 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
                     </span>
                   </button>
                 ) : (
-                  <a
+                  <LocalNavLink
                     key={item.label}
                     href={item.href}
                     className="flex w-full items-center justify-between py-4 text-left"
-                    onClick={onClose}
+                    onNavigate={onClose}
                   >
                     <span className="flex items-center gap-2 text-[17px] font-semibold text-gray-900">
                       {item.label}
@@ -180,21 +214,21 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
                       className="h-5 w-5 text-gray-400"
                       aria-hidden="true"
                     />
-                  </a>
+                  </LocalNavLink>
                 ),
               )}
 
               <div className="my-3 border-t border-gray-100" />
 
               {MENU_LINKS.map((link) => (
-                <a
+                <LocalNavLink
                   key={link.label}
                   href={link.href}
                   className="block py-4 text-[17px] font-semibold text-gray-900"
-                  onClick={onClose}
+                  onNavigate={onClose}
                 >
                   {link.label}
-                </a>
+                </LocalNavLink>
               ))}
             </nav>
           </div>
@@ -244,12 +278,13 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
                 </svg>
               </a>
             </div>
-            <a
-              href="https://dbcstore.fr/fr/account"
+            <LocalNavLink
+              href="#"
               className="text-sm font-medium text-gray-900 hover:text-gray-500"
+              onNavigate={onClose}
             >
               Mon compte
-            </a>
+            </LocalNavLink>
           </div>
         </div>
       </div>
@@ -285,36 +320,37 @@ export function Header() {
               </button>
             </div>
 
-            <a
+            <Link
+              to={ROUTES.home}
               className="absolute left-1/2 flex shrink-0 -translate-x-1/2 items-center lg:relative lg:left-auto lg:translate-x-0"
-              href="https://dbcstore.fr/fr"
+              ariaLabel="DBC"
             >
               <Logo className="h-6 w-auto text-primary transition-colors duration-300 lg:h-8" />
               <span className="sr-only">DBC</span>
-            </a>
+            </Link>
 
             <div className="hidden flex-1 justify-center lg:flex">
               <SearchTrigger className="max-w-xl" />
             </div>
 
             <div className="flex items-center gap-1 lg:gap-2">
-              <a
+              <LocalNavLink
+                href="#"
                 className="hidden items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-[13px] font-semibold text-gray-900 transition-all hover:border-gray-900 hover:shadow-sm lg:flex"
-                href="https://dbcstore.fr/fr/reprise"
               >
                 <ArrowLeftRight className="h-3.5 w-3.5" aria-hidden="true" />
                 Revendre
-              </a>
-              <a
+              </LocalNavLink>
+              <LocalNavLink
+                href="#"
                 className="relative p-2.5 text-gray-900 transition-colors hover:text-gray-500"
-                href="https://dbcstore.fr/fr/cart"
-                aria-label="Panier"
+                ariaLabel="Panier"
               >
                 <ShoppingCart
                   className="h-6 w-6 lg:h-5 lg:w-5"
                   aria-hidden="true"
                 />
-              </a>
+              </LocalNavLink>
             </div>
           </div>
 
@@ -325,20 +361,20 @@ export function Header() {
           <div className="hidden border-t border-gray-200/50 transition-colors duration-300 lg:flex lg:justify-center lg:py-1.5">
             <nav className="flex items-center gap-0.5">
               {NAV.map((item) => (
-                <a
+                <LocalNavLink
                   key={item.label}
-                  className="whitespace-nowrap rounded-lg px-3.5 py-1.5 text-[13px] font-medium text-gray-600 transition-all hover:text-gray-900"
                   href={item.href}
+                  className="whitespace-nowrap rounded-lg px-3.5 py-1.5 text-[13px] font-medium text-gray-600 transition-all hover:text-gray-900"
                 >
                   {item.label}
-                </a>
+                </LocalNavLink>
               ))}
-              <a
+              <Link
+                to={ROUTES.home}
                 className="whitespace-nowrap rounded-lg px-3.5 py-1.5 text-[13px] font-semibold text-primary transition-all hover:text-primary/80"
-                href="/"
               >
                 Trouver mon téléphone
-              </a>
+              </Link>
             </nav>
           </div>
         </div>
