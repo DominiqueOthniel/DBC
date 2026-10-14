@@ -32,7 +32,7 @@ export const PHONE_COLOR_HEX: Record<string, string> = {
   'Ambre Titane': '#9CB0C4',
   Graphite: '#54524F',
   Violet: '#B7A6E6',
-  // iPhone 18 Pro Max (finitions Apple FR 2026)
+  // iPhone 18 Pro / Pro Max (finitions Apple FR 2026)
   Glacier: '#E8F2FE',
   // Bordeaux: thumb Apple FR #4D1822 (vin foncé, pas rose)
   Bordeaux: '#4D1822',

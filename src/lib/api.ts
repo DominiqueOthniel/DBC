@@ -34,13 +34,13 @@ const API_BASE = '/api/public/v1'
 /** Baisse catalogue affichée (−2%), arrondi à l'euro. */
 export const CATALOG_PRICE_FACTOR = 0.98
 
-const PRICE_FIELDS = [
+/** Champs reconditionnés (le neuf Apple `new_price` reste au MSRP). */
+const DISCOUNTED_PRICE_FIELDS = [
   'price_from',
   'price_correct',
   'price_imparfait',
   'price_tres_bon',
   'price_parfait',
-  'new_price',
 ] as const
 
 function discountEuro(value: number | null | undefined): number | null {
@@ -48,10 +48,10 @@ function discountEuro(value: number | null | undefined): number | null {
   return Math.round(value * CATALOG_PRICE_FACTOR)
 }
 
-/** Transform client: −2% sur tous les champs prix d'un modèle. */
+/** Transform client: −2% sur les prix reconditionnés (pas sur `new_price`). */
 export function applyCatalogPriceDiscount(model: Model): Model {
   const next = { ...model }
-  for (const key of PRICE_FIELDS) {
+  for (const key of DISCOUNTED_PRICE_FIELDS) {
     next[key] = discountEuro(model[key])
   }
   return next

@@ -11,7 +11,7 @@ export type FeaturedDeal = {
   qty?: number
 }
 
-/** Offres « Great deal » (home), alignées sur la grille live + 18 Pro Max Bordeaux. */
+/** Offres « Great deal » (home). Prix iPhone 18 = MSRP Apple FR × 0,98. */
 export const FEATURED_DEALS: FeaturedDeal[] = [
   {
     id: 'macbook-air-15-m2',
@@ -41,8 +41,19 @@ export const FEATURED_DEALS: FeaturedDeal[] = [
     colorHex: '#4D1822',
     colorName: 'Bordeaux',
     grade: 'Parfait',
-    price: 1186,
+    price: 1596,
     href: '/p/iphone-18-pro-max?color=Bordeaux',
+  },
+  {
+    id: 'iphone-18-pro-bordeaux',
+    slug: 'iphone-18-pro',
+    title: 'Apple iPhone 18 Pro 256GB Bordeaux',
+    imageUrl: '/product-images/iphone-18-pro/bordeaux/bordeaux-wine.jpg',
+    colorHex: '#4D1822',
+    colorName: 'Bordeaux',
+    grade: 'Parfait',
+    price: 1449,
+    href: '/p/iphone-18-pro?color=Bordeaux',
   },
   {
     id: 'iphone-13-mini',

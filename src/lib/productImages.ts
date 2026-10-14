@@ -29,6 +29,12 @@ const LOCAL_COLOR_IMAGES: Record<string, Record<string, string>> = {
     Argent: '/product-images/iphone-18-pro-max/argent/0.jpg',
     Noir: '/product-images/iphone-18-pro-max/noir/0.jpg',
   },
+  'iphone-18-pro': {
+    Bordeaux: '/product-images/iphone-18-pro/bordeaux/bordeaux-wine.jpg',
+    Glacier: '/product-images/iphone-18-pro/glacier/0.jpg',
+    Argent: '/product-images/iphone-18-pro/argent/0.jpg',
+    Noir: '/product-images/iphone-18-pro/noir/0.jpg',
+  },
 }
 
 function folderCandidates(color: string): string[] {
