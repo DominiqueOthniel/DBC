@@ -9,7 +9,8 @@ export const CATALOG_OVERRIDES: Model[] = [
     display_name: 'iPhone 18 Pro Max',
     brand: 'Apple',
     category: 'mobile',
-    primary_image_url: '/product-images/iphone-18-pro-max/bordeaux/0.jpg',
+    primary_image_url:
+      '/product-images/iphone-18-pro-max/bordeaux/bordeaux-wine.jpg',
     // Base avant la baisse globale −2% appliquée dans getModels.
     price_from: 1210,
     price_correct: 1320,

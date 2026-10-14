@@ -34,8 +34,8 @@ export const PHONE_COLOR_HEX: Record<string, string> = {
   Violet: '#B7A6E6',
   // iPhone 18 Pro Max (finitions Apple FR 2026)
   Glacier: '#E8F2FE',
-  // Bordeaux: thumb Apple ≈ #4D1822; UI un peu plus saturé pour rester lisible
-  Bordeaux: '#6B2030',
+  // Bordeaux: thumb Apple FR #4D1822 (vin foncé, pas rose)
+  Bordeaux: '#4D1822',
 }
 
 export function colorHex(name: string): string {

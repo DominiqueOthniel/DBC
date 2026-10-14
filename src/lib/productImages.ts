@@ -24,7 +24,7 @@ const COLOR_ALIASES: Record<string, string> = {
 
 const LOCAL_COLOR_IMAGES: Record<string, Record<string, string>> = {
   'iphone-18-pro-max': {
-    Bordeaux: '/product-images/iphone-18-pro-max/bordeaux/0.jpg',
+    Bordeaux: '/product-images/iphone-18-pro-max/bordeaux/bordeaux-wine.jpg',
     Glacier: '/product-images/iphone-18-pro-max/glacier/0.jpg',
     Argent: '/product-images/iphone-18-pro-max/argent/0.jpg',
     Noir: '/product-images/iphone-18-pro-max/noir/0.jpg',
