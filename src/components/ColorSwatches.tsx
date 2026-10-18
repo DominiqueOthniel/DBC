@@ -1,0 +1,105 @@
+import { colorHex } from '../data/phoneColors'
+
+/** Listing dots: cliquables pour changer l’aperçu. */
+export function ListingColorDots({
+  colors,
+  max = 4,
+  value,
+  onChange,
+}: {
+  colors?: string[] | null
+  max?: number
+  value?: string
+  onChange?: (name: string) => void
+}) {
+  if (!colors?.length) return null
+  const shown = colors.slice(0, max)
+  const extra = colors.length - shown.length
+  const interactive = typeof onChange === 'function'
+  return (
+    <div className="mt-auto flex items-center gap-1 pt-2 sm:order-first sm:mt-0 sm:mb-3 sm:pt-0">
+      {shown.map((name) => {
+        const selected = value === name
+        if (interactive) {
+          return (
+            <button
+              key={name}
+              type="button"
+              title={name}
+              aria-label={name}
+              aria-pressed={selected}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                onChange(name)
+              }}
+              className={`h-3 w-3 rounded-full border transition ${
+                selected
+                  ? 'border-primary ring-1 ring-primary/40'
+                  : 'border-gray-200 hover:border-gray-400'
+              }`}
+              style={{ backgroundColor: colorHex(name) }}
+            />
+          )
+        }
+        return (
+          <span
+            key={name}
+            className="h-3 w-3 rounded-full border border-gray-200"
+            style={{ backgroundColor: colorHex(name) }}
+          />
+        )
+      })}
+      {extra > 0 ? (
+        <span className="pl-0.5 text-[11px] font-medium text-gray-500">
+          +{extra}
+        </span>
+      ) : null}
+    </div>
+  )
+}
+
+/** Product page selectable swatches. */
+export function ProductColorPicker({
+  colors,
+  value,
+  onChange,
+}: {
+  colors: string[]
+  value: string
+  onChange: (name: string) => void
+}) {
+  if (!colors.length) return null
+  return (
+    <div className="mt-5">
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="text-sm font-semibold text-gray-900">Couleur</p>
+        <p className="text-sm text-gray-600">{value}</p>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2.5">
+        {colors.map((name) => {
+          const selected = name === value
+          return (
+            <button
+              key={name}
+              type="button"
+              aria-label={name}
+              aria-pressed={selected}
+              onClick={() => onChange(name)}
+              className={`flex h-10 w-10 items-center justify-center rounded-full border-2 p-0.5 transition ${
+                selected
+                  ? 'border-primary'
+                  : 'border-transparent hover:border-gray-300'
+              }`}
+            >
+              <span
+                className="h-full w-full rounded-full border border-gray-200"
+                style={{ backgroundColor: colorHex(name) }}
+              />
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
