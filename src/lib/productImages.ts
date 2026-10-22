@@ -11,15 +11,29 @@ export function colorFolder(name: string): string {
     .replace(/^-+|-+$/g, '')
 }
 
-/** Alias fréquents API / UI. */
+/**
+ * Alias EN/FR + synonymes de stockage Supabase.
+ * Clé = dossier normalisé, valeur = dossier réel souvent présent.
+ */
 const COLOR_ALIASES: Record<string, string> = {
   silver: 'argent',
   black: 'noir',
   white: 'blanc',
   blue: 'bleu',
   green: 'vert',
+  grey: 'gris',
+  gray: 'gris',
+  purple: 'violet',
   natural: 'titane-naturel',
   desert: 'titane-desert',
+  'midnight-blue': 'bleu-nuit',
+  cream: 'creme',
+  creme: 'beige',
+  'bleu-nuit': 'blanc',
+  graphite: 'gris',
+  sierra: 'bleu',
+  'bleu-sierra': 'bleu',
+  'titane-desert': 'desert',
 }
 
 const LOCAL_COLOR_IMAGES: Record<string, Record<string, string>> = {
@@ -37,65 +51,148 @@ const LOCAL_COLOR_IMAGES: Record<string, Record<string, string>> = {
   },
 }
 
+/** Placeholder neutre (évite l’icône bleue navigateur). */
+export const PRODUCT_IMAGE_PLACEHOLDER =
+  "data:image/svg+xml;charset=utf-8," +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+      <rect width="400" height="400" fill="#f5f5f5"/>
+      <rect x="140" y="90" width="120" height="220" rx="16" fill="#ebebeb" stroke="#d4d4d4"/>
+      <circle cx="200" cy="150" r="18" fill="#d4d4d4"/>
+    </svg>`,
+  )
+
 function folderCandidates(color: string): string[] {
   const raw = colorFolder(color)
-  const alias = COLOR_ALIASES[raw]
   const out = [raw]
-  if (alias) out.push(alias)
-  // "Titane désert" parfois stocké sans accents déjà géré; variantes
-  if (raw.startsWith('titane-')) out.push(raw)
+  let cur: string | undefined = COLOR_ALIASES[raw]
+  const seen = new Set(out)
+  while (cur && !seen.has(cur)) {
+    out.push(cur)
+    seen.add(cur)
+    cur = COLOR_ALIASES[cur]
+  }
+  if (raw.startsWith('titane-')) out.push(raw.replace(/^titane-/, ''))
+  return [...new Set(out)]
+}
+
+function parseProductImagePath(url: string): {
+  prefix: string
+  colorSeg: string
+  file: string
+} | null {
+  const remote = url.match(
+    /^(.*\/product-images\/[^/]+\/)([^/]+)(\/[^/?#]+)$/i,
+  )
+  if (remote) {
+    return { prefix: remote[1], colorSeg: remote[2], file: remote[3] }
+  }
+  const local = url.match(/^(\/product-images\/[^/]+\/)([^/]+)(\/[^/?#]+)$/i)
+  if (local) {
+    return { prefix: local[1], colorSeg: local[2], file: local[3] }
+  }
+  return null
+}
+
+function localImageForColor(
+  slug: string,
+  color: string,
+): string | null {
+  const byName = LOCAL_COLOR_IMAGES[slug]?.[color]
+  if (byName) return byName
+  const localByFolder = LOCAL_COLOR_IMAGES[slug]
+  if (!localByFolder) return null
+  const folder = colorFolder(color)
+  const hit = Object.entries(localByFolder).find(
+    ([name]) => colorFolder(name) === folder,
+  )
+  return hit?.[1] ?? null
+}
+
+/**
+ * Couleur initiale: packshot primary (URL connue bonne) → default (alias) → 1re couleur.
+ * On privilégie le dossier déjà présent dans primary_image_url pour éviter les 404 Supabase.
+ */
+export function pickInitialColor(
+  model: Pick<Model, 'colors' | 'default_color' | 'primary_image_url'>,
+): string {
+  const colors = model.colors ?? []
+  if (!colors.length) return model.default_color ?? ''
+
+  const parsed = model.primary_image_url
+    ? parseProductImagePath(model.primary_image_url)
+    : null
+  if (parsed) {
+    const primaryFolders = new Set([
+      parsed.colorSeg,
+      ...folderCandidates(parsed.colorSeg),
+    ])
+    const byPrimary = colors.find((c) =>
+      folderCandidates(c).some((f) => primaryFolders.has(f)),
+    )
+    if (byPrimary) return byPrimary
+  }
+
+  const defaultKey = colorFolder(model.default_color ?? '')
+  const defaultAliases = new Set(
+    defaultKey ? folderCandidates(model.default_color ?? '') : [],
+  )
+  const byDefault = colors.find((c) => {
+    const folders = folderCandidates(c)
+    return folders.some((f) => defaultAliases.has(f) || f === defaultKey)
+  })
+  if (byDefault) return byDefault
+
+  return colors[0] ?? model.default_color ?? ''
+}
+
+/**
+ * Liste d’URLs à essayer pour une finition (rewrites + primary en secours).
+ */
+export function imageCandidatesForColor(
+  model: Pick<Model, 'slug' | 'primary_image_url' | 'default_color'>,
+  color?: string | null,
+): string[] {
+  const primary = model.primary_image_url
+  if (!color) return primary ? [primary] : []
+
+  const local = localImageForColor(model.slug, color)
+  if (local) return [local]
+
+  if (!primary) return []
+
+  const parsed = parseProductImagePath(primary)
+  if (!parsed) return [primary]
+
+  const folders = folderCandidates(color)
+  const primaryFolders = new Set([
+    parsed.colorSeg,
+    ...folderCandidates(parsed.colorSeg),
+  ])
+
+  const out: string[] = []
+  // Si la couleur demandée correspond déjà au packshot, garder le primary en premier
+  if (folders.some((f) => primaryFolders.has(f))) {
+    out.push(primary)
+  }
+  for (const folder of folders) {
+    if (folder === parsed.colorSeg) continue
+    out.push(`${parsed.prefix}${folder}${parsed.file}`)
+  }
+  if (!out.includes(primary)) out.push(primary)
   return [...new Set(out)]
 }
 
 /**
- * Image produit pour une finition.
- * 1) assets locaux (18 Pro Max)
- * 2) remplacement du dossier couleur dans primary_image_url (catalogue API)
- * 3) fallback primary
+ * Image produit pour une finition (1er candidat).
+ * Les composants doivent enchaîner via onError + imageCandidatesForColor.
  */
 export function imageForColor(
   model: Pick<Model, 'slug' | 'primary_image_url' | 'default_color'>,
   color?: string | null,
 ): string | null {
-  const primary = model.primary_image_url
-  if (!color) return primary
-
-  const local = LOCAL_COLOR_IMAGES[model.slug]?.[color]
-  if (local) return local
-
-  // match local by folder too
-  const localByFolder = LOCAL_COLOR_IMAGES[model.slug]
-  if (localByFolder) {
-    const folder = colorFolder(color)
-    const hit = Object.entries(localByFolder).find(
-      ([name]) => colorFolder(name) === folder,
-    )
-    if (hit) return hit[1]
-  }
-
-  if (!primary) return null
-
-  const folders = folderCandidates(color)
-  // …/product-images/{slug}/{colorFolder}/0.jpg
-  const m = primary.match(
-    /^(.*\/product-images\/[^/]+\/)([^/]+)(\/[^/?#]+)$/i,
-  )
-  if (m) {
-    const [, prefix, , file] = m
-    // Prefer first candidate; browser will 404 → we also try default_color below via caller
-    return `${prefix}${folders[0]}${file}`
-  }
-
-  // Local public path style
-  const localPath = primary.match(
-    /^(\/product-images\/[^/]+\/)([^/]+)(\/[^/?#]+)$/i,
-  )
-  if (localPath) {
-    const [, prefix, , file] = localPath
-    return `${prefix}${folders[0]}${file}`
-  }
-
-  return primary
+  const candidates = imageCandidatesForColor(model, color)
+  return candidates[0] ?? null
 }
 
 /** Précharge les URLs couleur pour éviter flash blanc. */

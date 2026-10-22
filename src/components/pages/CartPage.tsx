@@ -2,6 +2,7 @@ import { Minus, Plus, Trash2 } from 'lucide-react'
 import { formatEuro } from '../../lib/api'
 import { useCart } from '../../lib/cart'
 import { Link, ROUTES } from '../../lib/routing'
+import { ProductImage } from '../ProductImage'
 
 export function CartPage() {
   const { lines, subtotal, setQty, removeItem, clear, count } = useCart()
@@ -57,10 +58,10 @@ export function CartPage() {
               to={line.href}
               className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-gray-50 sm:h-24 sm:w-24"
             >
-              <img
-                src={line.imageUrl}
+              <ProductImage
+                candidates={[line.imageUrl]}
                 alt=""
-                className="absolute inset-0 h-full w-full object-contain p-1"
+                imgClassName="absolute inset-0 h-full w-full object-contain p-1"
               />
             </Link>
             <div className="min-w-0 flex-1">
