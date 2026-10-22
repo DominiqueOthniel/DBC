@@ -1,3 +1,4 @@
+import { CATALOG_IMAGE_FALLBACKS } from '../data/catalogImageFallbacks'
 import type { Model } from './api'
 
 /** Dossier couleur catalogue (slug kebab sans accents). */
@@ -162,6 +163,13 @@ function parseProductImagePath(url: string): {
   if (local) {
     return { prefix: local[1], colorSeg: local[2], file: local[3] }
   }
+  // Bucket catalogue: …/catalog-images/{slug}/{color}.{ext}
+  const catalog = decoded.match(
+    /^(.*\/catalog-images\/[^/]+\/)([^/.]+)(\.[^/?#]+)$/i,
+  )
+  if (catalog) {
+    return { prefix: catalog[1], colorSeg: catalog[2], file: catalog[3] }
+  }
   return null
 }
 
@@ -177,18 +185,43 @@ function localImageForColor(slug: string, color: string): string | null {
   return hit?.[1] ?? null
 }
 
+function catalogFallback(slug: string) {
+  return CATALOG_IMAGE_FALLBACKS[slug] ?? null
+}
+
+function catalogImageForColor(slug: string, color?: string | null): string | null {
+  const set = catalogFallback(slug)
+  if (!set) return null
+  if (!color) return set.primary
+  for (const key of folderCandidates(color)) {
+    if (set.byColor[key]) return set.byColor[key]
+  }
+  return set.primary
+}
+
+/** Remplit primary_image_url manquant depuis le registre catalogue DBC. */
+export function withCatalogImageFallback<T extends Model>(model: T): T {
+  if (model.primary_image_url) return model
+  const set = catalogFallback(model.slug)
+  if (!set) return model
+  return { ...model, primary_image_url: set.primary }
+}
+
 /**
  * Couleur initiale: packshot primary (URL connue bonne) → default (alias) → 1re couleur.
  * On privilégie le dossier déjà présent dans primary_image_url pour éviter les 404 Supabase.
  */
 export function pickInitialColor(
-  model: Pick<Model, 'colors' | 'default_color' | 'primary_image_url'>,
+  model: Pick<Model, 'slug' | 'colors' | 'default_color' | 'primary_image_url'>,
 ): string {
   const colors = model.colors ?? []
   if (!colors.length) return model.default_color ?? ''
 
-  const parsed = model.primary_image_url
-    ? parseProductImagePath(model.primary_image_url)
+  const effectivePrimary =
+    model.primary_image_url || catalogFallback(model.slug)?.primary || null
+
+  const parsed = effectivePrimary
+    ? parseProductImagePath(effectivePrimary)
     : null
   if (parsed) {
     const primaryFolders = new Set([
@@ -199,6 +232,15 @@ export function pickInitialColor(
       folderCandidates(c).some((f) => primaryFolders.has(f)),
     )
     if (byPrimary) return byPrimary
+  }
+
+  // Fallback catalogue: préfère une couleur qui a un fichier dédié
+  const set = catalogFallback(model.slug)
+  if (set) {
+    const withFile = colors.find((c) =>
+      folderCandidates(c).some((f) => Boolean(set.byColor[f])),
+    )
+    if (withFile) return withFile
   }
 
   const defaultKey = colorFolder(model.default_color ?? '')
@@ -221,17 +263,30 @@ export function imageCandidatesForColor(
   model: Pick<Model, 'slug' | 'primary_image_url' | 'default_color'>,
   color?: string | null,
 ): string[] {
-  const primaryRaw = model.primary_image_url
+  const catalog = catalogImageForColor(model.slug, color)
+  const primaryRaw = model.primary_image_url || catalogFallback(model.slug)?.primary
   const primary = primaryRaw ? encodeImageUrl(primaryRaw) : null
-  if (!color) return primary ? [primary] : []
+
+  if (!color) {
+    const out = [catalog, primary].filter(Boolean) as string[]
+    return [...new Set(out.map(encodeImageUrl))]
+  }
 
   const local = localImageForColor(model.slug, color)
   if (local) return [local]
 
-  if (!primaryRaw || !primary) return []
+  const out: string[] = []
+  if (catalog) out.push(catalog)
+
+  if (!primaryRaw || !primary) {
+    return [...new Set(out.map(encodeImageUrl))]
+  }
 
   const parsed = parseProductImagePath(primaryRaw)
-  if (!parsed) return [primary]
+  if (!parsed) {
+    out.push(primary)
+    return [...new Set(out.map(encodeImageUrl))]
+  }
 
   const folders = folderCandidates(color)
   const primaryKey = colorFolder(parsed.colorSeg)
@@ -240,7 +295,6 @@ export function imageCandidatesForColor(
     ...folderCandidates(parsed.colorSeg),
   ])
 
-  const out: string[] = []
   if (folders.some((f) => primaryFolders.has(f))) {
     out.push(primary)
   }
@@ -252,7 +306,7 @@ export function imageCandidatesForColor(
     out.push(built)
   }
   if (!out.includes(primary)) out.push(primary)
-  return [...new Set(out)]
+  return [...new Set(out.map(encodeImageUrl))]
 }
 
 /**
