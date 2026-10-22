@@ -34,6 +34,25 @@ const COLOR_ALIASES: Record<string, string> = {
   sierra: 'bleu',
   'bleu-sierra': 'bleu',
   'titane-desert': 'desert',
+  // MacBook UUID folders (Title Case + espaces)
+  or: 'gold',
+  argent: 'silver',
+  'gris-sideral': 'space-grey',
+  gold: 'or',
+  'space-grey': 'gris-sideral',
+}
+
+/**
+ * Variantes de segment dossier telles qu’elles existent parfois dans Supabase
+ * (espaces, casse). Clé = colorFolder().
+ */
+const STORAGE_FOLDER_VARIANTS: Record<string, string[]> = {
+  'space-grey': ['Space Grey', 'space-grey', 'SpaceGrey'],
+  gold: ['Gold', 'gold', 'Or', 'or'],
+  silver: ['Silver', 'silver', 'Argent', 'argent'],
+  or: ['Or', 'or', 'Gold', 'gold'],
+  argent: ['Argent', 'argent', 'Silver', 'silver'],
+  'gris-sideral': ['Gris sidéral', 'gris-sideral', 'Space Grey', 'space-grey'],
 }
 
 const LOCAL_COLOR_IMAGES: Record<string, Record<string, string>> = {
@@ -62,12 +81,49 @@ export const PRODUCT_IMAGE_PLACEHOLDER =
     </svg>`,
   )
 
+/** Encode chaque segment de chemin (espaces → %20) sans toucher au host. */
+export function encodeImageUrl(url: string): string {
+  if (!url || url.startsWith('data:') || url.startsWith('/')) {
+    // chemins locaux: encode segments sauf leading /
+    if (url.startsWith('/') && !url.startsWith('//')) {
+      return (
+        '/' +
+        url
+          .slice(1)
+          .split('/')
+          .map((seg) => encodeURIComponent(decodeURIComponentSafe(seg)))
+          .join('/')
+      )
+    }
+    return url
+  }
+  try {
+    const u = new URL(url)
+    u.pathname = u.pathname
+      .split('/')
+      .map((seg) => encodeURIComponent(decodeURIComponentSafe(seg)))
+      .join('/')
+    return u.toString()
+  } catch {
+    return url.replace(/ /g, '%20')
+  }
+}
+
+function decodeURIComponentSafe(seg: string) {
+  try {
+    return decodeURIComponent(seg)
+  } catch {
+    return seg
+  }
+}
+
 function folderCandidates(color: string): string[] {
   const raw = colorFolder(color)
   const out = [raw]
   let cur: string | undefined = COLOR_ALIASES[raw]
   const seen = new Set(out)
-  while (cur && !seen.has(cur)) {
+  // Follow a few hops, avoid infinite loops (bidirectional aliases)
+  for (let i = 0; i < 6 && cur && !seen.has(cur); i++) {
     out.push(cur)
     seen.add(cur)
     cur = COLOR_ALIASES[cur]
@@ -76,28 +132,40 @@ function folderCandidates(color: string): string[] {
   return [...new Set(out)]
 }
 
+/** Segments dossier à tenter dans l’URL (casse / espaces inclus). */
+function storageFolderSegments(color: string): string[] {
+  const keys = folderCandidates(color)
+  const segs: string[] = []
+  for (const key of keys) {
+    segs.push(key)
+    const variants = STORAGE_FOLDER_VARIANTS[key]
+    if (variants) segs.push(...variants)
+  }
+  return [...new Set(segs)]
+}
+
 function parseProductImagePath(url: string): {
   prefix: string
   colorSeg: string
   file: string
 } | null {
-  const remote = url.match(
+  const decoded = decodeURIComponentSafe(url)
+  const remote = decoded.match(
     /^(.*\/product-images\/[^/]+\/)([^/]+)(\/[^/?#]+)$/i,
   )
   if (remote) {
     return { prefix: remote[1], colorSeg: remote[2], file: remote[3] }
   }
-  const local = url.match(/^(\/product-images\/[^/]+\/)([^/]+)(\/[^/?#]+)$/i)
+  const local = decoded.match(
+    /^(\/product-images\/[^/]+\/)([^/]+)(\/[^/?#]+)$/i,
+  )
   if (local) {
     return { prefix: local[1], colorSeg: local[2], file: local[3] }
   }
   return null
 }
 
-function localImageForColor(
-  slug: string,
-  color: string,
-): string | null {
+function localImageForColor(slug: string, color: string): string | null {
   const byName = LOCAL_COLOR_IMAGES[slug]?.[color]
   if (byName) return byName
   const localByFolder = LOCAL_COLOR_IMAGES[slug]
@@ -124,7 +192,7 @@ export function pickInitialColor(
     : null
   if (parsed) {
     const primaryFolders = new Set([
-      parsed.colorSeg,
+      colorFolder(parsed.colorSeg),
       ...folderCandidates(parsed.colorSeg),
     ])
     const byPrimary = colors.find((c) =>
@@ -153,31 +221,35 @@ export function imageCandidatesForColor(
   model: Pick<Model, 'slug' | 'primary_image_url' | 'default_color'>,
   color?: string | null,
 ): string[] {
-  const primary = model.primary_image_url
+  const primaryRaw = model.primary_image_url
+  const primary = primaryRaw ? encodeImageUrl(primaryRaw) : null
   if (!color) return primary ? [primary] : []
 
   const local = localImageForColor(model.slug, color)
   if (local) return [local]
 
-  if (!primary) return []
+  if (!primaryRaw || !primary) return []
 
-  const parsed = parseProductImagePath(primary)
+  const parsed = parseProductImagePath(primaryRaw)
   if (!parsed) return [primary]
 
   const folders = folderCandidates(color)
+  const primaryKey = colorFolder(parsed.colorSeg)
   const primaryFolders = new Set([
-    parsed.colorSeg,
+    primaryKey,
     ...folderCandidates(parsed.colorSeg),
   ])
 
   const out: string[] = []
-  // Si la couleur demandée correspond déjà au packshot, garder le primary en premier
   if (folders.some((f) => primaryFolders.has(f))) {
     out.push(primary)
   }
-  for (const folder of folders) {
-    if (folder === parsed.colorSeg) continue
-    out.push(`${parsed.prefix}${folder}${parsed.file}`)
+
+  const segments = storageFolderSegments(color)
+  for (const seg of segments) {
+    if (colorFolder(seg) === primaryKey && seg === parsed.colorSeg) continue
+    const built = encodeImageUrl(`${parsed.prefix}${seg}${parsed.file}`)
+    out.push(built)
   }
   if (!out.includes(primary)) out.push(primary)
   return [...new Set(out)]

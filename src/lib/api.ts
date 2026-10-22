@@ -1,4 +1,5 @@
 import { mergeCatalogOverrides } from '../data/catalogOverrides'
+import { encodeImageUrl } from './productImages'
 import { ROUTES } from './routing'
 
 export type Model = {
@@ -53,6 +54,9 @@ export function applyCatalogPriceDiscount(model: Model): Model {
   const next = { ...model }
   for (const key of DISCOUNTED_PRICE_FIELDS) {
     next[key] = discountEuro(model[key])
+  }
+  if (next.primary_image_url) {
+    next.primary_image_url = encodeImageUrl(next.primary_image_url)
   }
   return next
 }
