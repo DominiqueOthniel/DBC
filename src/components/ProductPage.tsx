@@ -3,9 +3,15 @@ import { useEffect, useMemo, useState } from 'react'
 import { colorHex } from '../data/phoneColors'
 import { formatEuro, getModels, modelPrice, type Model } from '../lib/api'
 import { useCart } from '../lib/cart'
-import { imageForColor, preloadColorImages } from '../lib/productImages'
+import {
+  imageCandidatesForColor,
+  imageForColor,
+  pickInitialColor,
+  preloadColorImages,
+} from '../lib/productImages'
 import { Link, ROUTES } from '../lib/routing'
 import { ProductColorPicker } from './ColorSwatches'
+import { ProductImage } from './ProductImage'
 
 const GRADES = ['Parfait', 'Très bon', 'Correct'] as const
 
@@ -34,20 +40,11 @@ export function ProductPage({ slug }: { slug: string }) {
           setModel(m)
           if (!m) return
           const colors = m.colors ?? []
-          const base =
-            colors.find((c) => c === m.default_color) ||
-            colors.find(
-              (c) =>
-                c.toLowerCase() === (m.default_color ?? '').toLowerCase(),
-            ) ||
-            colors[0] ||
-            m.default_color ||
-            ''
+          const base = pickInitialColor(m)
           const initial = initialColorFromUrl(colors, base || '')
           setColor(initial || '')
-          preloadColorImages(
-            colors.map((c) => imageForColor(m, c)).filter(Boolean) as string[],
-          )
+          const urls = colors.flatMap((c) => imageCandidatesForColor(m, c))
+          preloadColorImages(urls)
         }
         if (!found) {
           return getModels({ perPage: 100 }).then((all) => {
@@ -64,6 +61,11 @@ export function ProductPage({ slug }: { slug: string }) {
       cancelled = true
     }
   }, [slug])
+
+  const imageCandidates = useMemo(() => {
+    if (!model) return [] as string[]
+    return imageCandidatesForColor(model, color)
+  }, [model, color])
 
   const imageUrl = useMemo(() => {
     if (!model) return null
@@ -125,14 +127,11 @@ export function ProductPage({ slug }: { slug: string }) {
 
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
         <div className="relative aspect-square w-full shrink-0 overflow-hidden rounded-xl bg-gray-50 sm:aspect-auto sm:h-72 sm:w-72">
-          {imageUrl ? (
-            <img
-              key={imageUrl}
-              src={imageUrl}
-              alt={`${model.display_name ?? model.name}${color ? ` ${color}` : ''}`}
-              className="absolute inset-0 h-full w-full object-contain p-4 transition-opacity duration-200"
-            />
-          ) : null}
+          <ProductImage
+            candidates={imageCandidates}
+            alt={`${model.display_name ?? model.name}${color ? ` ${color}` : ''}`}
+            imgClassName="absolute inset-0 h-full w-full object-contain p-4 transition-opacity duration-200"
+          />
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-gray-500">{model.brand}</p>

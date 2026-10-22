@@ -2,9 +2,14 @@ import { ShoppingBag, Zap } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { formatEuro, modelPrice, type Model } from '../lib/api'
 import { useCart } from '../lib/cart'
-import { imageForColor } from '../lib/productImages'
+import {
+  imageCandidatesForColor,
+  imageForColor,
+  pickInitialColor,
+} from '../lib/productImages'
 import { Link, ROUTES } from '../lib/routing'
 import { ListingColorDots } from './ColorSwatches'
+import { ProductImage } from './ProductImage'
 
 function listPrice(model: Model) {
   return model.price_from ?? modelPrice(model)
@@ -13,20 +18,16 @@ function listPrice(model: Model) {
 export function CatalogProductCard({ model }: { model: Model }) {
   const { addItem } = useCart()
   const colors = model.colors ?? []
-  const [color, setColor] = useState(
-    () =>
-      colors.find((c) => c === model.default_color) ||
-      colors.find(
-        (c) => c.toLowerCase() === (model.default_color ?? '').toLowerCase(),
-      ) ||
-      colors[0] ||
-      '',
-  )
+  const [color, setColor] = useState(() => pickInitialColor(model))
   const price = listPrice(model)
   const neu = model.new_price ?? null
   const save =
     price != null && neu != null && neu > price ? neu - price : null
   const title = model.display_name ?? model.name
+  const imageCandidates = useMemo(
+    () => imageCandidatesForColor(model, color),
+    [model, color],
+  )
   const imageUrl = useMemo(
     () => imageForColor(model, color) || model.primary_image_url,
     [model, color],
@@ -69,14 +70,11 @@ export function CatalogProductCard({ model }: { model: Model }) {
             </span>
           ) : null}
           <div className="relative aspect-square overflow-hidden rounded-xl">
-            {imageUrl ? (
-              <img
-                key={imageUrl}
-                src={imageUrl}
-                alt={`${title}${color ? ` ${color}` : ''}`}
-                className="absolute inset-0 h-full w-full object-contain transition-opacity duration-200"
-              />
-            ) : null}
+            <ProductImage
+              candidates={imageCandidates}
+              alt={`${title}${color ? ` ${color}` : ''}`}
+              imgClassName="absolute inset-0 h-full w-full object-contain transition-opacity duration-200"
+            />
           </div>
         </Link>
 

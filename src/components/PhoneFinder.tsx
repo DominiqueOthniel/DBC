@@ -22,6 +22,7 @@ import {
 } from '../lib/api'
 import { useCart } from '../lib/cart'
 import { Link, ROUTES } from '../lib/routing'
+import { ProductImage } from './ProductImage'
 
 function OptionButton({
   label,
@@ -275,13 +276,12 @@ export function PhoneFinder() {
           </div>
         )}
         <div className="mt-6 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-          {result.model.primary_image_url && (
-            <img
-              src={result.model.primary_image_url}
-              alt={result.model.display_name ?? result.model.name}
-              className="h-40 w-40 object-contain"
-            />
-          )}
+          <ProductImage
+            candidates={[result.model.primary_image_url]}
+            alt={result.model.display_name ?? result.model.name}
+            className="relative h-40 w-40 shrink-0"
+            imgClassName="h-40 w-40 object-contain"
+          />
           <div>
             <p className="text-sm font-medium text-gray-500">
               {result.model.brand}

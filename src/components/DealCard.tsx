@@ -9,6 +9,7 @@ import { formatDealPrice, type FeaturedDeal } from '../data/deals'
 import { useCart } from '../lib/cart'
 import { Link } from '../lib/routing'
 import { DealBadge } from './BrushHighlight'
+import { ProductImage } from './ProductImage'
 
 export function DealCard({ deal }: { deal: FeaturedDeal }) {
   const { addItem } = useCart()
@@ -40,12 +41,10 @@ export function DealCard({ deal }: { deal: FeaturedDeal }) {
       <Link to={deal.href} className="group">
         <div className="relative mx-auto h-28 w-full sm:h-32">
           <DealBadge />
-          <img
+          <ProductImage
+            candidates={[deal.imageUrl]}
             alt={deal.title}
-            loading="lazy"
-            decoding="async"
-            className="absolute inset-0 h-full w-full object-contain transition-transform group-hover:scale-105"
-            src={deal.imageUrl}
+            imgClassName="absolute inset-0 h-full w-full object-contain transition-transform group-hover:scale-105"
           />
         </div>
         <h3 className="mt-2 line-clamp-1 font-display text-sm font-semibold text-gray-900 group-hover:underline">
