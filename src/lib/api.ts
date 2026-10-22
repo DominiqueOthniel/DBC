@@ -1,5 +1,5 @@
 import { mergeCatalogOverrides } from '../data/catalogOverrides'
-import { encodeImageUrl } from './productImages'
+import { encodeImageUrl, withCatalogImageFallback } from './productImages'
 import { ROUTES } from './routing'
 
 export type Model = {
@@ -51,7 +51,7 @@ function discountEuro(value: number | null | undefined): number | null {
 
 /** Transform client: −2% sur les prix reconditionnés (pas sur `new_price`). */
 export function applyCatalogPriceDiscount(model: Model): Model {
-  const next = { ...model }
+  const next = withCatalogImageFallback({ ...model })
   for (const key of DISCOUNTED_PRICE_FIELDS) {
     next[key] = discountEuro(model[key])
   }
